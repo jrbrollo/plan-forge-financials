@@ -14,6 +14,7 @@ import EmergencyFund from "./pages/EmergencyFund";
 import IncomeProtection from "./pages/IncomeProtection";
 import Investments from "./pages/Investments";
 import Retirement from "./pages/Retirement";
+import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 
 // Create QueryClient instance
@@ -21,26 +22,25 @@ const queryClient = new QueryClient();
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/budget" element={<Budget />} />
-              <Route path="/cash-flow" element={<CashFlow />} />
-              <Route path="/emergency-fund" element={<EmergencyFund />} />
-              <Route path="/income-protection" element={<IncomeProtection />} />
-              <Route path="/investments" element={<Investments />} />
-              <Route path="/retirement" element={<Retirement />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/budget" element={<Budget />} />
+            <Route path="/cash-flow" element={<CashFlow />} />
+            <Route path="/emergency-fund" element={<EmergencyFund />} />
+            <Route path="/income-protection" element={<IncomeProtection />} />
+            <Route path="/investments" element={<Investments />} />
+            <Route path="/retirement" element={<Retirement />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 

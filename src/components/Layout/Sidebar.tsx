@@ -9,6 +9,7 @@ import {
   Shield, 
   LineChart, 
   LifeBuoy,
+  User
 } from "lucide-react";
 
 interface SidebarItemProps {
@@ -53,6 +54,12 @@ export function Sidebar() {
             icon={<Home size={18} />} 
             label="Dashboard" 
             active={path === '/'} 
+          />
+          <SidebarItem 
+            to="/clients" 
+            icon={<User size={18} />} 
+            label="Clientes" 
+            active={path === '/clients'} 
           />
           <SidebarItem 
             to="/cash-flow" 
