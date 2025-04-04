@@ -15,6 +15,7 @@ import IncomeProtection from "./pages/IncomeProtection";
 import Investments from "./pages/Investments";
 import Retirement from "./pages/Retirement";
 import Clients from "./pages/Clients";
+import ClientDetails from "./pages/ClientDetails";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/clients" element={<Clients />} />
+            <Route path="/clients/:clientId" element={<ClientDetails />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/cash-flow" element={<CashFlow />} />
             <Route path="/emergency-fund" element={<EmergencyFund />} />
