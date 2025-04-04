@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { cn } from "@/lib/utils";
+import { useClient } from '@/context/ClientContext';
 import { 
   Home, 
   DollarSign, 
@@ -9,7 +10,8 @@ import {
   Shield, 
   LineChart, 
   LifeBuoy,
-  User
+  User,
+  Users
 } from "lucide-react";
 
 interface SidebarItemProps {
@@ -39,6 +41,13 @@ const SidebarItem = ({ to, icon, label, active }: SidebarItemProps) => {
 export function Sidebar() {
   const location = useLocation();
   const path = location.pathname;
+  const { clientId } = useParams();
+  const { currentClient } = useClient();
+  
+  // Função para criar links com ou sem clientId
+  const createLink = (basePath: string) => {
+    return clientId ? `${basePath}/${clientId}` : basePath;
+  };
   
   return (
     <div className="h-screen w-64 bg-finance-darkblue text-white flex flex-col">
@@ -57,53 +66,55 @@ export function Sidebar() {
           />
           <SidebarItem 
             to="/clients" 
-            icon={<User size={18} />} 
+            icon={<Users size={18} />} 
             label="Clientes" 
-            active={path === '/clients'} 
+            active={path === '/clients' || path.startsWith('/clients/')} 
           />
           <SidebarItem 
-            to="/cash-flow" 
+            to={createLink("/cash-flow")}
             icon={<DollarSign size={18} />} 
             label="Cash Flow" 
-            active={path === '/cash-flow'} 
+            active={path === '/cash-flow' || path.startsWith('/cash-flow/')} 
           />
           <SidebarItem 
-            to="/budget" 
+            to={createLink("/budget")}
             icon={<TrendingUp size={18} />} 
             label="Budget" 
-            active={path === '/budget'} 
+            active={path === '/budget' || path.startsWith('/budget/')} 
           />
           <SidebarItem 
-            to="/investments" 
+            to={createLink("/investments")}
             icon={<LineChart size={18} />} 
             label="Investments" 
-            active={path === '/investments'} 
+            active={path === '/investments' || path.startsWith('/investments/')} 
           />
           <SidebarItem 
-            to="/emergency-fund" 
+            to={createLink("/emergency-fund")}
             icon={<Shield size={18} />} 
             label="Emergency Fund" 
-            active={path === '/emergency-fund'} 
+            active={path === '/emergency-fund' || path.startsWith('/emergency-fund/')} 
           />
           <SidebarItem 
-            to="/income-protection" 
+            to={createLink("/income-protection")}
             icon={<LifeBuoy size={18} />} 
             label="Income Protection" 
-            active={path === '/income-protection'} 
+            active={path === '/income-protection' || path.startsWith('/income-protection/')} 
           />
           <SidebarItem 
-            to="/retirement" 
+            to={createLink("/retirement")}
             icon={<LineChart size={18} />} 
             label="Retirement" 
-            active={path === '/retirement'} 
+            active={path === '/retirement' || path.startsWith('/retirement/')} 
           />
         </ul>
       </nav>
       
       <div className="p-4 border-t border-finance-navy">
         <div className="text-sm text-gray-400">
-          <p>Current Client:</p>
-          <p className="font-semibold text-white">João Silva</p>
+          <p>Cliente Atual:</p>
+          <p className="font-semibold text-white">
+            {currentClient ? currentClient.name : "Nenhum selecionado"}
+          </p>
         </div>
       </div>
     </div>
