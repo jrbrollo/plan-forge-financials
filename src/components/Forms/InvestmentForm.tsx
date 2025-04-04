@@ -1,167 +1,122 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CurrencyInput } from "@/components/ui/currency-input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PercentageInput } from "@/components/ui/percentage-input";
-import { Investment } from '@/lib/types';
-import { format } from 'date-fns';
-import { CalendarIcon, Save, X } from 'lucide-react';
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from '@/lib/utils';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useState as preactState } from "preact/hooks";
+import { Investment } from "@/lib/types";
 
 interface InvestmentFormProps {
-  onSave: (investment: Investment) => void;
-  onCancel: () => void;
+  onSubmit: (investment: Omit<Investment, 'id'>) => void;
+  initialValues?: Partial<Investment>;
 }
 
-export function InvestmentForm({ onSave, onCancel }: InvestmentFormProps) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState('');
-  const [initialValue, setInitialValue] = useState(0);
-  const [currentValue, setCurrentValue] = useState(0);
-  const [annualReturn, setAnnualReturn] = useState(0);
-  const [investmentDate, setInvestmentDate] = useState<Date | undefined>(new Date());
-  const [error, setError] = useState('');
-  
+export function InvestmentForm({ onSubmit, initialValues = {} }: InvestmentFormProps) {
+  const [name, setName] = useState(initialValues.name || '');
+  const [type, setType] = useState(initialValues.type || 'other');
+  const [initialValue, setInitialValue] = useState(initialValues.initialValue || 0);
+  const [currentValue, setCurrentValue] = useState(initialValues.currentValue || 0);
+  const [annualReturn, setAnnualReturn] = useState(initialValues.annualReturn || 0);
+  const [investmentDate, setInvestmentDate] = useState(initialValues.investmentDate ? 
+    initialValues.investmentDate.toISOString().split('T')[0] : '');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !type || !investmentDate) {
-      setError('Por favor, preencha todos os campos obrigatórios.');
-      return;
-    }
-    
-    const newInvestment: Investment = {
+    onSubmit({
       name,
-      type,
+      type: type as Investment['type'],
       initialValue,
       currentValue,
       annualReturn,
-      investmentDate: investmentDate as Date,
-    };
-    
-    onSave(newInvestment);
+      investmentDate: new Date(investmentDate)
+    });
+
+    // Reset form
+    setName('');
+    setType('other');
+    setInitialValue(0);
+    setCurrentValue(0);
+    setAnnualReturn(0);
+    setInvestmentDate('');
   };
-  
+
   return (
-    <Card className="w-full">
+    <Card className="finance-card">
       <CardHeader>
-        <CardTitle className="text-finance-navy">Registre seu investimento</CardTitle>
+        <CardTitle className="text-finance-navy">Add Investment</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="bg-red-50 border-red-200 text-red-800">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="investment-name">Qual investimento você fez?</Label>
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
             <Input 
-              id="investment-name" 
+              id="name"
               value={name} 
-              onChange={(e) => setName(e.target.value)}
-              placeholder="reserva"
+              onChange={(e) => setName(e.target.value)} 
+              placeholder="Investment Name"
+              required
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="investment-initial-value">Valor investido (R$)</Label>
-              <CurrencyInput
-                value={initialValue}
-                onChange={setInitialValue}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="investment-current-value">Valor atual (R$)</Label>
-              <CurrencyInput
-                value={currentValue}
-                onChange={setCurrentValue}
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="investment-date">Data do investimento</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !investmentDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {investmentDate ? format(investmentDate, 'yyyy/MM/dd') : <span>Selecione uma data</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 pointer-events-auto">
-                  <Calendar
-                    mode="single"
-                    selected={investmentDate}
-                    onSelect={setInvestmentDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="investment-return">Rentabilidade anual (%)</Label>
-              <PercentageInput
-                value={annualReturn}
-                onChange={setAnnualReturn}
-              />
-            </div>
+          <div>
+            <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
+            <select
+              id="type"
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              required
+            >
+              <option value="emergency_fund">Emergency Fund</option>
+              <option value="retirement">Retirement</option>
+              <option value="goal">Goal-specific</option>
+              <option value="other">Other</option>
+            </select>
           </div>
           
           <div>
-            <Label htmlFor="investment-type">Categoria</Label>
-            <div className="mt-1">
-              <Label>Tipo de investimento:</Label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Renda Fixa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed_income">Renda Fixa</SelectItem>
-                  <SelectItem value="variable_income">Renda Variável</SelectItem>
-                  <SelectItem value="real_estate">Fundos Imobiliários</SelectItem>
-                  <SelectItem value="emergency_fund">Reserva de Emergência</SelectItem>
-                  <SelectItem value="retirement">Previdência</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <label htmlFor="initialValue" className="block text-sm font-medium text-gray-700">Initial Value</label>
+            <CurrencyInput
+              value={initialValue}
+              onChange={setInitialValue}
+              placeholder="R$ 0,00"
+            />
           </div>
+          
+          <div>
+            <label htmlFor="currentValue" className="block text-sm font-medium text-gray-700">Current Value</label>
+            <CurrencyInput
+              value={currentValue}
+              onChange={setCurrentValue}
+              placeholder="R$ 0,00"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="annualReturn" className="block text-sm font-medium text-gray-700">Annual Return (%)</label>
+            <PercentageInput
+              value={annualReturn}
+              onChange={setAnnualReturn}
+              placeholder="0%"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="investmentDate" className="block text-sm font-medium text-gray-700">Investment Date</label>
+            <Input
+              id="investmentDate"
+              type="date"
+              value={investmentDate}
+              onChange={(e) => setInvestmentDate(e.target.value)}
+              required
+            />
+          </div>
+          
+          <Button type="submit" className="w-full">Add Investment</Button>
         </form>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button 
-          variant="outline" 
-          onClick={onCancel}
-          className="flex items-center gap-2"
-        >
-          <X size={18} />
-          Cancelar
-        </Button>
-        <Button 
-          onClick={handleSubmit}
-          className="flex items-center gap-2 bg-finance-blue hover:bg-finance-darkblue"
-        >
-          <Save size={18} />
-          Salvar investimento
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
