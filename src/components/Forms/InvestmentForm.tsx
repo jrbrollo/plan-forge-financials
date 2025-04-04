@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CurrencyInput } from "@/components/ui/currency-input";
@@ -8,11 +7,12 @@ import { PercentageInput } from "@/components/ui/percentage-input";
 import { Investment } from "@/lib/types";
 
 interface InvestmentFormProps {
-  onSubmit: (investment: Omit<Investment, 'id'>) => void;
+  onSave: (investment: Omit<Investment, 'id'>) => void;
+  onCancel: () => void;
   initialValues?: Partial<Investment>;
 }
 
-export function InvestmentForm({ onSubmit, initialValues = {} }: InvestmentFormProps) {
+export function InvestmentForm({ onSave, onCancel, initialValues = {} }: InvestmentFormProps) {
   const [name, setName] = useState(initialValues.name || '');
   const [type, setType] = useState(initialValues.type || 'other');
   const [initialValue, setInitialValue] = useState(initialValues.initialValue || 0);
@@ -24,7 +24,7 @@ export function InvestmentForm({ onSubmit, initialValues = {} }: InvestmentFormP
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    onSubmit({
+    onSave({
       name,
       type: type as Investment['type'],
       initialValue,
@@ -114,7 +114,10 @@ export function InvestmentForm({ onSubmit, initialValues = {} }: InvestmentFormP
             />
           </div>
           
-          <Button type="submit" className="w-full">Add Investment</Button>
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+            <Button type="submit">Add Investment</Button>
+          </div>
         </form>
       </CardContent>
     </Card>
