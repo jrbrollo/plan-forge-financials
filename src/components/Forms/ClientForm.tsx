@@ -9,9 +9,10 @@ interface ClientFormProps {
   onSave: (client: Omit<Client, 'id'>) => void;
   onCancel: () => void;
   initialValues?: Partial<Client>;
+  isSimpleForm?: boolean;
 }
 
-export function ClientForm({ onSave, onCancel, initialValues = {} }: ClientFormProps) {
+export function ClientForm({ onSave, onCancel, initialValues = {}, isSimpleForm = false }: ClientFormProps) {
   const [name, setName] = useState(initialValues.name || '');
   const [age, setAge] = useState(initialValues.age || 0);
   const [email, setEmail] = useState(initialValues.email || '');

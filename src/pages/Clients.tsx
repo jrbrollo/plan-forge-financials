@@ -4,8 +4,10 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClientForm } from "@/components/Forms/ClientForm";
+import { ClientMultiStepForm } from "@/components/Forms/ClientMultiStepForm";
 import { Client } from "@/lib/types";
-import { Plus, Edit, User } from "lucide-react";
+import { Plus, Edit, User, ChevronRight } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 // Alguns clientes de exemplo para demonstração
 const sampleClients: Client[] = [
@@ -28,7 +30,9 @@ const sampleClients: Client[] = [
 const Clients = () => {
   const [clients, setClients] = useState<Client[]>(sampleClients);
   const [showForm, setShowForm] = useState(false);
+  const [showSimpleForm, setShowSimpleForm] = useState(true);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
+  const { toast } = useToast();
 
   const handleSaveClient = (clientData: Omit<Client, 'id'>) => {
     if (currentClient) {
@@ -38,6 +42,11 @@ const Clients = () => {
           ? { ...clientData, id: currentClient.id } 
           : client
       ));
+      
+      toast({
+        title: "Cliente atualizado",
+        description: `Os dados de ${clientData.name} foram atualizados com sucesso.`,
+      });
     } else {
       // Adicionar novo cliente
       const newClient: Client = {
@@ -45,6 +54,11 @@ const Clients = () => {
         id: `${clients.length + 1}`
       };
       setClients([...clients, newClient]);
+      
+      toast({
+        title: "Cliente adicionado",
+        description: `${clientData.name} foi adicionado(a) com sucesso.`,
+      });
     }
     
     setShowForm(false);
@@ -59,6 +73,10 @@ const Clients = () => {
   const handleCancelForm = () => {
     setShowForm(false);
     setCurrentClient(null);
+  };
+
+  const toggleFormType = () => {
+    setShowSimpleForm(!showSimpleForm);
   };
 
   return (
@@ -80,11 +98,35 @@ const Clients = () => {
         </div>
 
         {showForm ? (
-          <ClientForm 
-            onSave={handleSaveClient}
-            onCancel={handleCancelForm}
-            initialValues={currentClient || {}}
-          />
+          <>
+            {!currentClient && (
+              <div className="mb-4 flex justify-end">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={toggleFormType}
+                >
+                  {showSimpleForm 
+                    ? "Usar formulário completo" 
+                    : "Usar formulário simples"}
+                </Button>
+              </div>
+            )}
+            
+            {showSimpleForm ? (
+              <ClientForm 
+                onSave={handleSaveClient}
+                onCancel={handleCancelForm}
+                initialValues={currentClient || {}}
+              />
+            ) : (
+              <ClientMultiStepForm 
+                onSave={handleSaveClient}
+                onCancel={handleCancelForm}
+                initialValues={currentClient || {}}
+              />
+            )}
+          </>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {clients.map(client => (
@@ -111,11 +153,32 @@ const Clients = () => {
                       <p className="text-sm text-gray-500">Telefone</p>
                       <p className="font-medium">{client.phone}</p>
                     </div>
+                    
+                    {client.profession && (
+                      <div>
+                        <p className="text-sm text-gray-500">Profissão</p>
+                        <p className="font-medium">{client.profession}</p>
+                      </div>
+                    )}
+                    
+                    {client.monthlyNetIncome && (
+                      <div>
+                        <p className="text-sm text-gray-500">Renda mensal</p>
+                        <p className="font-medium">
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(client.monthlyNetIncome)}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
-                  <Button variant="outline" className="w-full mt-4" onClick={() => alert(`Ver plano financeiro para ${client.name}`)}>
-                    Ver Plano Financeiro
-                  </Button>
+                  <div className="mt-4 space-y-2">
+                    <Button variant="outline" className="w-full" onClick={() => alert(`Ver plano financeiro para ${client.name}`)}>
+                      Ver Plano Financeiro <ChevronRight size={16} className="ml-1" />
+                    </Button>
+                    <Button variant="secondary" className="w-full" onClick={() => handleEditClient(client)}>
+                      Editar Informações <Edit size={16} className="ml-1" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
