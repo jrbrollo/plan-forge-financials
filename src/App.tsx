@@ -17,10 +17,10 @@ import Retirement from "./pages/Retirement";
 import Clients from "./pages/Clients";
 import NotFound from "./pages/NotFound";
 
-// Create QueryClient instance
-const queryClient = new QueryClient();
-
 const App = () => {
+  // Create a new QueryClient for React Query inside the component
+  const queryClient = new QueryClient();
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
