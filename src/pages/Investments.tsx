@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -68,7 +69,7 @@ const Investments = () => {
       }
       
       if (client) {
-        // Gerar investimentos com base nos dados do cliente
+        // Usar createInvestmentsFromClient para obter investimentos baseados nos dados do cliente
         const clientInvestments = createInvestmentsFromClient(client);
         setInvestments(clientInvestments);
       }
@@ -77,7 +78,7 @@ const Investments = () => {
     };
     
     loadData();
-  }, [clientId, currentClient]);
+  }, [clientId, currentClient, setCurrentClient]);
   
   // Colors for the chart
   const COLORS = ['#0A1C45', '#2B4C91', '#6C81AC', '#38A169', '#F6AD55'];
@@ -111,7 +112,26 @@ const Investments = () => {
   
   // Handle save new investment
   const handleSaveInvestment = (investment: Investment) => {
-    setInvestments([...investments, investment]);
+    // Update client's investment data
+    if (currentClient) {
+      const updatedInvestments = [...investments, investment];
+      setInvestments(updatedInvestments);
+      
+      // Update client's totalInvestments value
+      const newTotalInvestment = updatedInvestments.reduce(
+        (total, inv) => total + inv.currentValue, 0
+      );
+      
+      const updatedClient = {
+        ...currentClient,
+        hasInvestments: true,
+        totalInvestments: newTotalInvestment
+      };
+      
+      // Update context and localStorage would happen here via clientService
+      setCurrentClient(updatedClient);
+    }
+    
     setShowForm(false);
   };
   

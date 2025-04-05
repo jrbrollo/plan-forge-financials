@@ -1,9 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Client } from "@/lib/types";
 import { getClientById, saveClient } from "@/services/clientService";
 import { useToast } from "@/hooks/use-toast";
 import { createFinancialPlanFromClient } from "@/services/financialService";
-import { calculateTotalInvestments } from "@/services/investmentService";
+import { calculateTotalInvestments, createInvestmentsFromClient } from "@/services/investmentService";
 
 interface ClientContextType {
   currentClient: Client | null;
@@ -45,8 +46,27 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateClient = (clientData: Client) => {
     try {
-      if (clientData.hasInvestments && !clientData.totalInvestments) {
+      // Garantir coerência dos dados de investimento
+      if (clientData.hasInvestments && clientData.totalInvestments === undefined) {
         clientData.totalInvestments = 0;
+      }
+      
+      // Se houver descrição de investimentos mas totalInvestments não estiver definido,
+      // extrair o valor total da descrição ou definir um valor padrão
+      if (clientData.investmentsDescription && !clientData.totalInvestments) {
+        // Tentar extrair valores da descrição
+        const regex = /R\$\s*([\d.,]+)/g;
+        const matches = [...clientData.investmentsDescription.matchAll(regex)];
+        
+        if (matches.length > 0) {
+          // Somar todos os valores encontrados na descrição
+          const total = matches.reduce((sum, match) => {
+            const valueStr = match[1].replace('.', '').replace(',', '.');
+            return sum + parseFloat(valueStr);
+          }, 0);
+          
+          clientData.totalInvestments = total;
+        }
       }
       
       saveClient(clientData);
@@ -69,12 +89,30 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!client) return null;
     
     try {
+      // Gerar investimentos consistentes com os dados do cliente
+      const investments = createInvestmentsFromClient(client);
+      
+      // Calcular o total real de investimentos (soma dos investimentos gerados)
+      const totalInvestments = investments.reduce((sum, inv) => sum + inv.currentValue, 0);
+      
+      // Se o total calculado for diferente do registrado no cliente, atualizar o cliente
+      if (client.hasInvestments && totalInvestments !== client.totalInvestments && investments.length > 0) {
+        const updatedClient = {
+          ...client,
+          totalInvestments: totalInvestments
+        };
+        
+        // Não salvamos aqui para evitar loops, apenas atualizamos o contexto
+        setCurrentClient(updatedClient);
+        client = updatedClient;
+      }
+      
       const financialPlan = createFinancialPlanFromClient(client);
-      const totalInvestments = calculateTotalInvestments(client);
       
       return { 
         financialPlan,
         totalInvestments,
+        investments,
         hasDiversifiedPortfolio: client.hasDiversifiedPortfolio || false
       };
     } catch (error) {
