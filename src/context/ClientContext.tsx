@@ -1,9 +1,9 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Client } from "@/lib/types";
 import { getClientById, saveClient } from "@/services/clientService";
 import { useToast } from "@/hooks/use-toast";
 import { createFinancialPlanFromClient } from "@/services/financialService";
+import { calculateTotalInvestments } from "@/services/investmentService";
 
 interface ClientContextType {
   currentClient: Client | null;
@@ -45,6 +45,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const updateClient = (clientData: Client) => {
     try {
+      if (clientData.hasInvestments && !clientData.totalInvestments) {
+        clientData.totalInvestments = 0;
+      }
+      
       saveClient(clientData);
       setCurrentClient(clientData);
       toast({
@@ -61,13 +65,18 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Função para obter dados financeiros com base em um cliente
   const getFinancialData = (client: Client) => {
     if (!client) return null;
     
     try {
       const financialPlan = createFinancialPlanFromClient(client);
-      return { financialPlan };
+      const totalInvestments = calculateTotalInvestments(client);
+      
+      return { 
+        financialPlan,
+        totalInvestments,
+        hasDiversifiedPortfolio: client.hasDiversifiedPortfolio || false
+      };
     } catch (error) {
       console.error("Erro ao processar dados financeiros:", error);
       toast({

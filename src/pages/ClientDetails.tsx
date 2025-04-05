@@ -16,12 +16,9 @@ import { getClientById, deleteClient } from '@/services/clientService';
 import { ClientFormToggle } from '@/components/Forms/ClientFormToggle';
 import type { Client } from '@/lib/types';
 
-// Função para verificar se um cliente tem dados completos
 const isClientProfileComplete = (client: Client): boolean => {
-  // Verificar campos básicos de contato
   const hasBasicInfo = Boolean(client.name && client.age && client.email && client.phone);
   
-  // Verificar se pelo menos alguns dados adicionais foram preenchidos
   const hasAdditionalInfo = Boolean(
     client.maritalStatus || 
     client.profession || 
@@ -34,7 +31,6 @@ const isClientProfileComplete = (client: Client): boolean => {
     client.hasCar
   );
   
-  // Cliente está completo se tem informações básicas e pelo menos uma informação adicional
   return hasBasicInfo && hasAdditionalInfo;
 };
 
@@ -589,6 +585,17 @@ const ClientDetails = () => {
                             <Separator className="mt-2" />
                           </div>
                         )}
+
+                        <div className="col-span-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => navigate(`/investments/${currentClient.id}`)}
+                            className="flex items-center gap-2"
+                          >
+                            <PieChart className="h-4 w-4" /> Ver detalhes dos investimentos
+                          </Button>
+                        </div>
                       </>
                     )}
                   </div>
@@ -672,7 +679,6 @@ const ClientDetails = () => {
   );
 };
 
-// Componente auxiliar para exibir dados
 const DataItem = ({ label, value }: { label: string; value: string }) => (
   <div className="mb-3">
     <p className="text-sm text-gray-500">{label}</p>

@@ -1,4 +1,3 @@
-
 import { 
   Client, 
   FinancialPlan, 
@@ -11,381 +10,268 @@ import {
   DebtAnalysis
 } from '@/lib/types';
 
-// Função para criar um plano financeiro com base nos dados do cliente
 export const createFinancialPlanFromClient = (client: Client): FinancialPlan => {
-  // Assegurar que estamos usando a renda correta do cliente
-  const clientIncome = client?.monthlyNetIncome || client?.income || 5000;
-  
-  // Configurar receitas com base nos dados do cliente
-  const defaultIncome = [
-    {
-      description: client.profession || 'Salário',
-      amount: clientIncome,
-      frequency: 'monthly' as const
-    }
-  ];
+  const monthlyIncome = client.monthlyNetIncome || client.income || 0;
+  let monthlyExpensesTotal = 0;
+  const expenses = [];
 
-  // Usar dados de despesas do cliente, se disponíveis, ou criar despesas estimadas
-  let expenses = [];
-  
-  // Verificar se o cliente tem despesas fixas ou variáveis registradas
-  const hasClientExpenses = client.fixedMonthlyExpenses || client.variableExpenses;
-  
-  if (hasClientExpenses) {
-    // Processar despesas fixas
-    if (client.fixedMonthlyExpenses) {
-      const fixedExpensesText = client.fixedMonthlyExpenses;
-      const fixedExpensesItems = parseExpensesFromText(fixedExpensesText);
-      
-      expenses.push(...fixedExpensesItems.map(expense => ({
-        description: expense.description,
-        amount: expense.amount,
-        category: 'Fixo',
-        isEssential: true
-      })));
-    }
-    
-    // Processar despesas variáveis
-    if (client.variableExpenses) {
-      const variableExpensesText = client.variableExpenses;
-      const variableExpensesItems = parseExpensesFromText(variableExpensesText);
-      
-      expenses.push(...variableExpensesItems.map(expense => ({
-        description: expense.description,
-        amount: expense.amount,
-        category: 'Variável',
-        isEssential: false
-      })));
-    }
-  }
-  
-  // Se não houver despesas registradas, criar despesas padrão com base na renda
-  if (expenses.length === 0) {
-    // Usar ~70% da renda para despesas padrão
-    const estimatedExpenses = clientIncome * 0.7;
-    expenses = generateDefaultExpenses(estimatedExpenses);
-    
-    // Adicionar despesas específicas com base nos dados do cliente
-    if (client.hasProperty && !client.isPropertyPaidOff && client.propertyMonthlyPayment) {
-      expenses.push({
-        description: 'Financiamento Imobiliário',
-        amount: client.propertyMonthlyPayment,
-        category: 'Moradia',
-        isEssential: true
-      });
-    }
-    
-    if (client.hasCar && !client.isCarPaidOff && client.carMonthlyPayment) {
-      expenses.push({
-        description: 'Financiamento de Veículo',
-        amount: client.carMonthlyPayment,
-        category: 'Transporte',
-        isEssential: true
-      });
-    }
+  // Collecting expenses from client data
+  if (client.propertyMonthlyPayment) {
+    expenses.push({
+      description: "Financiamento imobiliário",
+      amount: client.propertyMonthlyPayment,
+      category: "Moradia",
+      isEssential: true,
+      percentage: (client.propertyMonthlyPayment / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += client.propertyMonthlyPayment;
   }
 
-  // Gerar fluxo de caixa atual com base nos dados
+  if (client.carMonthlyPayment) {
+    expenses.push({
+      description: "Financiamento de veículo",
+      amount: client.carMonthlyPayment,
+      category: "Transporte",
+      isEssential: false,
+      percentage: (client.carMonthlyPayment / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += client.carMonthlyPayment;
+  }
+
+  if (client.creditCardBillAverage) {
+    expenses.push({
+      description: "Cartão de crédito",
+      amount: client.creditCardBillAverage,
+      category: "Diversos",
+      isEssential: false,
+      percentage: (client.creditCardBillAverage / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += client.creditCardBillAverage;
+  }
+
+  if (client.debts) {
+    client.debts.forEach(debt => {
+      if (debt.monthlyPayment) {
+        expenses.push({
+          description: `Pagamento de dívida: ${debt.reason}`,
+          amount: debt.monthlyPayment,
+          category: "Dívidas",
+          isEssential: true,
+          percentage: (debt.monthlyPayment / monthlyIncome) * 100
+        });
+        monthlyExpensesTotal += debt.monthlyPayment;
+      }
+    });
+  }
+
+  // Estimated expenses for health insurance
+  if (client.hasHealthInsurance) {
+    const healthInsuranceEstimate = monthlyIncome * 0.08;
+    expenses.push({
+      description: "Plano de saúde",
+      amount: healthInsuranceEstimate,
+      category: "Saúde",
+      isEssential: true,
+      percentage: 8
+    });
+    monthlyExpensesTotal += healthInsuranceEstimate;
+  }
+
+  // Add estimated grocery expenses if not already added
+  if (!expenses.some(e => e.category === "Alimentação")) {
+    const groceryEstimate = Math.min(monthlyIncome * 0.15, 1500);
+    expenses.push({
+      description: "Supermercado",
+      amount: groceryEstimate,
+      category: "Alimentação",
+      isEssential: true,
+      percentage: (groceryEstimate / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += groceryEstimate;
+  }
+
+  // Add basic utility expenses if not already added
+  if (!expenses.some(e => e.category === "Utilidades")) {
+    const utilitiesEstimate = Math.min(monthlyIncome * 0.1, 800);
+    expenses.push({
+      description: "Utilidades (água, luz, internet)",
+      amount: utilitiesEstimate,
+      category: "Utilidades",
+      isEssential: true,
+      percentage: (utilitiesEstimate / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += utilitiesEstimate;
+  }
+
+  // Add monthly savings/investments if client has saving habit
+  let monthlySavings = 0;
+  if (client.hasSavingHabit) {
+    monthlySavings = client.monthlySavingsAverage || monthlyIncome * 0.1;
+    expenses.push({
+      description: "Economia/Investimentos",
+      amount: monthlySavings,
+      category: "Investimentos",
+      isEssential: false,
+      percentage: (monthlySavings / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += monthlySavings;
+  }
+
+  // If total reported expenses are less than 80% of income, add estimated discretionary expenses
+  if (monthlyExpensesTotal < monthlyIncome * 0.8) {
+    const discretionaryEstimate = monthlyIncome * 0.8 - monthlyExpensesTotal;
+    expenses.push({
+      description: "Despesas diversas",
+      amount: discretionaryEstimate,
+      category: "Lazer/Diversos",
+      isEssential: false,
+      percentage: (discretionaryEstimate / monthlyIncome) * 100
+    });
+    monthlyExpensesTotal += discretionaryEstimate;
+  }
+
+  // Create current cash flow from client data
   const currentCashFlow: CashFlow = {
-    income: defaultIncome,
-    expenses: expenses
+    income: [{
+      description: "Renda principal",
+      amount: monthlyIncome,
+      frequency: "monthly"
+    }],
+    expenses
   };
 
-  // Calcular despesas otimizadas (redução de 15% em não essenciais)
-  const suggestedExpenses = currentCashFlow.expenses.map(expense => {
-    if (!expense.isEssential) {
-      return {
-        ...expense,
-        amount: expense.amount * 0.85 // Redução de 15% nas despesas não essenciais
-      };
+  // Create suggested cash flow (optimized version)
+  // This is a simplified optimization - a real financial advisor would provide more tailored advice
+  const suggestedExpenses = [...expenses];
+  
+  // Try to reduce non-essential expenses by 15%
+  suggestedExpenses.forEach(expense => {
+    if (!expense.isEssential && expense.category !== "Investimentos") {
+      expense.amount *= 0.85;  // 15% reduction
     }
-    return expense;
   });
 
-  // Fluxo de caixa sugerido
+  // Increase savings/investments if possible
+  const currentSavingExpense = suggestedExpenses.find(e => e.category === "Investimentos");
+  const suggestedSavingAmount = monthlyIncome * 0.15;  // Target 15% savings rate
+  
+  if (currentSavingExpense) {
+    if (currentSavingExpense.amount < suggestedSavingAmount) {
+      currentSavingExpense.amount = suggestedSavingAmount;
+    }
+  } else {
+    suggestedExpenses.push({
+      description: "Economia/Investimentos (recomendado)",
+      amount: suggestedSavingAmount,
+      category: "Investimentos",
+      isEssential: false,
+      percentage: 15
+    });
+  }
+
   const suggestedCashFlow: CashFlow = {
     income: currentCashFlow.income,
     expenses: suggestedExpenses
   };
 
-  // Gerar ativos com base nos dados do cliente
+  // Create assets from client data
   const assets: Asset[] = [];
   
-  // Adicionar imóvel se o cliente tiver
   if (client.hasProperty && client.propertyMarketValue) {
     assets.push({
-      description: 'Imóvel residencial',
+      description: "Imóvel",
       currentValue: client.propertyMarketValue,
-      acquisitionDate: new Date(new Date().getFullYear() - 5, 0, 1).toISOString(),
-      type: 'real_estate'
+      acquisitionDate: new Date().toISOString().split('T')[0],  // Simplified - ideally we'd have actual date
+      type: "real_estate"
     });
   }
   
-  // Adicionar carro se o cliente tiver
   if (client.hasCar && client.carMarketValue) {
     assets.push({
-      description: 'Veículo',
+      description: "Veículo",
       currentValue: client.carMarketValue,
-      acquisitionDate: new Date(new Date().getFullYear() - 2, 0, 1).toISOString(),
-      type: 'vehicle'
+      acquisitionDate: new Date().toISOString().split('T')[0],
+      type: "vehicle"
     });
   }
   
-  // Adicionar investimentos se o cliente tiver
+  // Add investment assets
   if (client.hasInvestments && client.totalInvestments) {
-    // Dividir os investimentos em diferentes categorias com base no perfil do cliente
-    const riskProfile = client.financialProfile?.riskTolerance || 'medium';
+    // Get detailed investment data
+    const investments = createInvestmentsFromClient(client);
     
-    if (riskProfile === 'low') {
-      // Perfil conservador: 80% renda fixa, 20% renda variável
+    // Create assets from investments
+    investments.forEach(investment => {
       assets.push({
-        description: 'Investimentos em Renda Fixa',
-        currentValue: client.totalInvestments * 0.8,
-        acquisitionDate: new Date(new Date().getFullYear() - 3, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.08
-      });
-      
-      assets.push({
-        description: 'Investimentos em Renda Variável',
-        currentValue: client.totalInvestments * 0.2,
-        acquisitionDate: new Date(new Date().getFullYear() - 2, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.12
-      });
-    } else if (riskProfile === 'medium') {
-      // Perfil moderado: 50% renda fixa, 50% renda variável
-      assets.push({
-        description: 'Investimentos em Renda Fixa',
-        currentValue: client.totalInvestments * 0.5,
-        acquisitionDate: new Date(new Date().getFullYear() - 3, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.08
-      });
-      
-      assets.push({
-        description: 'Investimentos em Renda Variável',
-        currentValue: client.totalInvestments * 0.5,
-        acquisitionDate: new Date(new Date().getFullYear() - 2, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.12
-      });
-    } else {
-      // Perfil arrojado: 20% renda fixa, 80% renda variável
-      assets.push({
-        description: 'Investimentos em Renda Fixa',
-        currentValue: client.totalInvestments * 0.2,
-        acquisitionDate: new Date(new Date().getFullYear() - 3, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.08
-      });
-      
-      assets.push({
-        description: 'Investimentos em Renda Variável',
-        currentValue: client.totalInvestments * 0.8,
-        acquisitionDate: new Date(new Date().getFullYear() - 2, 0, 1).toISOString(),
-        type: 'investment',
-        expectedReturn: 0.15
-      });
-    }
-  }
-
-  // Gerar dívidas com base nos dados do cliente
-  const debts: Debt[] = [];
-  
-  // Adicionar financiamento imobiliário
-  if (client.hasProperty && !client.isPropertyPaidOff) {
-    const propertyValue = client.propertyMarketValue || clientIncome * 36;
-    const propertyPayment = client.propertyMonthlyPayment || clientIncome * 0.3;
-    
-    debts.push({
-      description: 'Financiamento imobiliário',
-      currentValue: propertyValue * 0.7, // Estima que 70% do valor ainda está financiado
-      interestRate: 0.08,
-      monthlyPayment: propertyPayment,
-      remainingMonths: 240 // 20 anos padrão
-    });
-  }
-  
-  // Adicionar financiamento de veículo
-  if (client.hasCar && !client.isCarPaidOff) {
-    const carValue = client.carMarketValue || clientIncome * 6;
-    const carPayment = client.carMonthlyPayment || clientIncome * 0.15;
-    
-    debts.push({
-      description: 'Financiamento de veículo',
-      currentValue: carValue * 0.6, // Estima que 60% do valor ainda está financiado
-      interestRate: 0.12,
-      monthlyPayment: carPayment,
-      remainingMonths: 36 // 3 anos padrão
-    });
-  }
-  
-  // Adicionar dívidas adicionais do cliente
-  if (client.debts && client.debts.length > 0) {
-    client.debts.forEach(debt => {
-      // Estimar número de meses com base no valor e pagamento mensal
-      const remainingMonths = Math.ceil(debt.value / debt.monthlyPayment);
-      
-      debts.push({
-        description: debt.reason || 'Dívida',
-        currentValue: debt.value,
-        interestRate: 0.15, // Taxa padrão de 15% ao ano
-        monthlyPayment: debt.monthlyPayment,
-        remainingMonths: remainingMonths
+        description: investment.name,
+        currentValue: investment.currentValue,
+        acquisitionDate: investment.investmentDate.toISOString().split('T')[0],
+        type: "investment",
+        expectedReturn: investment.annualReturn
       });
     });
   }
 
-  // Gerar objetivos financeiros
+  // Parse client financial goals
   const financialGoals: FinancialGoal[] = [];
   
-  // Objetivo de reserva de emergência (sempre incluído)
-  const totalMonthlyExpenses = currentCashFlow.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const emergencyFundTarget = totalMonthlyExpenses * 6; // 6 meses de despesas
-  
-  financialGoals.push({
-    description: 'Reserva de emergência',
-    targetAmount: emergencyFundTarget,
-    currentSavings: client.hasInvestments ? (client.totalInvestments * 0.3) : emergencyFundTarget * 0.1,
-    targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString(),
-    priority: 'high'
-  });
-  
-  // Objetivo de aposentadoria
+  // Retirement goal
   if (client.retirement) {
     financialGoals.push({
-      description: 'Aposentadoria',
-      targetAmount: client.retirement.estimatedAmountNeeded || clientIncome * 300,
-      currentSavings: client.hasInvestments ? (client.totalInvestments * 0.5) : clientIncome * 10,
-      targetDate: client.retirement.targetDate || new Date(new Date().setFullYear(new Date().getFullYear() + 30)).toISOString(),
-      priority: 'medium'
-    });
-  } else if (client.age && client.financialProfile?.retirementAge) {
-    const yearsToRetirement = client.financialProfile.retirementAge - client.age;
-    financialGoals.push({
-      description: 'Aposentadoria',
-      targetAmount: clientIncome * 300, // ~25 anos de renda
-      currentSavings: client.hasInvestments ? (client.totalInvestments * 0.5) : clientIncome * 10,
-      targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + yearsToRetirement)).toISOString(),
-      priority: 'medium'
+      description: "Aposentadoria",
+      targetAmount: client.retirement.estimatedAmountNeeded || 0,
+      currentSavings: client.hasInvestments ? (client.totalInvestments || 0) * 0.25 : 0,  // Assuming 25% of investments are for retirement
+      targetDate: new Date(new Date().getFullYear() + 25, 0).toISOString().split('T')[0],  // Default to 25 years from now
+      priority: "high"
     });
   }
   
-  // Outros objetivos do cliente
+  // Additional goals
   if (client.otherGoals && client.otherGoals.length > 0) {
     client.otherGoals.forEach(goal => {
+      const deadlineYears = parseInt(goal.deadline) || 5;
       financialGoals.push({
         description: goal.description,
         targetAmount: goal.amountNeeded,
-        currentSavings: goal.amountNeeded * 0.1, // Assume 10% já poupado
-        targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + parseInt(goal.deadline))).toISOString(),
-        priority: 'low'
+        currentSavings: 0,  // We don't have this information from the client data
+        targetDate: new Date(new Date().getFullYear() + deadlineYears, 0).toISOString().split('T')[0],
+        priority: "medium"
       });
     });
   }
 
-  // Estimar fundo de emergência atual
-  const emergencyFund = financialGoals.find(goal => 
-    goal.description === 'Reserva de emergência'
-  )?.currentSavings || 0;
+  // Calculate emergency fund target (3-6 months of essential expenses)
+  const essentialMonthlyExpenses = expenses
+    .filter(exp => exp.isEssential)
+    .reduce((sum, exp) => sum + exp.amount, 0);
+    
+  const emergencyFundTarget = essentialMonthlyExpenses * 6;
+  
+  // Estimate current emergency fund (if they have investments)
+  let emergencyFund = 0;
+  if (client.hasInvestments && client.totalInvestments) {
+    emergencyFund = client.totalInvestments * 0.2;  // Assume 20% of investments are emergency fund
+  }
 
-  // Montar o plano financeiro
-  const financialPlan: FinancialPlan = {
+  return {
     financialGoals,
     assets,
-    debts,
+    debts: client.debts || [],
     currentCashFlow,
     suggestedCashFlow,
     emergencyFund,
     emergencyFundTarget
   };
-
-  return financialPlan;
 };
 
-// Função auxiliar para gerar despesas padrão com base no total
-function generateDefaultExpenses(totalAmount: number) {
-  return [
-    {
-      description: 'Moradia',
-      amount: totalAmount * 0.3,
-      category: 'Moradia',
-      isEssential: true
-    },
-    {
-      description: 'Alimentação',
-      amount: totalAmount * 0.2,
-      category: 'Alimentação',
-      isEssential: true
-    },
-    {
-      description: 'Transporte',
-      amount: totalAmount * 0.15,
-      category: 'Transporte',
-      isEssential: true
-    },
-    {
-      description: 'Saúde',
-      amount: totalAmount * 0.1,
-      category: 'Saúde',
-      isEssential: true
-    },
-    {
-      description: 'Lazer',
-      amount: totalAmount * 0.1,
-      category: 'Lazer',
-      isEssential: false
-    },
-    {
-      description: 'Educação',
-      amount: totalAmount * 0.05,
-      category: 'Educação',
-      isEssential: true
-    },
-    {
-      description: 'Outros',
-      amount: totalAmount * 0.1,
-      category: 'Outros',
-      isEssential: false
-    }
-  ];
-}
-
-// Função para extrair despesas de um texto
-function parseExpensesFromText(expensesText: string) {
-  const result = [];
-  const items = expensesText.split(',');
-  
-  for (const item of items) {
-    const match = item.match(/([^:]+):\s*R\$\s*([\d.,]+)/);
-    if (match) {
-      const description = match[1].trim();
-      // Converte string de valor para número
-      const rawAmount = match[2].replace('.', '').replace(',', '.');
-      const amount = parseFloat(rawAmount);
-      
-      if (!isNaN(amount)) {
-        result.push({
-          description,
-          amount
-        });
-      }
-    }
-  }
-  
-  return result;
-}
-
-// Função para calcular a saúde financeira com base no cliente e no plano
-export const calculateFinancialHealth = (client: Client, plan: FinancialPlan): FinancialHealth => {
+export const calculateFinancialHealth = (client: Client, financialPlan: FinancialPlan): FinancialHealth => {
   // Calcular patrimônio líquido
-  const totalAssets = plan.assets.reduce((sum, asset) => sum + asset.currentValue, 0);
-  const totalDebts = plan.debts.reduce((sum, debt) => sum + debt.currentValue, 0);
+  const totalAssets = financialPlan.assets.reduce((sum, asset) => sum + asset.currentValue, 0);
+  const totalDebts = financialPlan.debts.reduce((sum, debt) => sum + debt.currentValue, 0);
   const netWorth = totalAssets - totalDebts;
   
   // Calcular renda total mensal
-  const monthlyIncome = plan.currentCashFlow.income.reduce((sum, income) => {
+  const monthlyIncome = financialPlan.currentCashFlow.income.reduce((sum, income) => {
     if (income.frequency === 'monthly') {
       return sum + income.amount;
     } else if (income.frequency === 'annual') {
@@ -396,17 +282,17 @@ export const calculateFinancialHealth = (client: Client, plan: FinancialPlan): F
   }, 0);
   
   // Calcular despesas mensais
-  const monthlyExpenses = plan.currentCashFlow.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const monthlyExpenses = financialPlan.currentCashFlow.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   
   // Calcular taxa de poupança
   const savingsRate = (monthlyIncome - monthlyExpenses) / monthlyIncome * 100;
   
   // Calcular relação dívida/renda
-  const monthlyDebtPayments = plan.debts.reduce((sum, debt) => sum + debt.monthlyPayment, 0);
+  const monthlyDebtPayments = financialPlan.debts.reduce((sum, debt) => sum + debt.monthlyPayment, 0);
   const debtToIncomeRatio = monthlyDebtPayments / monthlyIncome;
   
   // Calcular meses de fundo de emergência
-  const emergencyFundMonths = plan.emergencyFund / monthlyExpenses;
+  const emergencyFundMonths = financialPlan.emergencyFund / monthlyExpenses;
   
   // Determinar status do fundo de emergência
   let emergencyFundStatus: 'insufficient' | 'sufficient' | 'excessive' = 'insufficient';
@@ -469,16 +355,15 @@ export const calculateFinancialHealth = (client: Client, plan: FinancialPlan): F
   };
 };
 
-// Função para calcular projeção de investimentos
-export const calculateInvestmentProjection = (client: Client, plan: FinancialPlan): InvestmentProjection => {
+export const calculateInvestmentProjection = (client: Client, financialPlan: FinancialPlan): InvestmentProjection => {
   // Obter ativos de investimento
-  const investments = plan.assets.filter(asset => asset.type === 'investment');
+  const investments = financialPlan.assets.filter(asset => asset.type === 'investment');
   
   // Calcular investimento inicial total
   const initialInvestment = investments.reduce((sum, investment) => sum + investment.currentValue, 0);
   
   // Estimar contribuição mensal com base no fluxo de caixa sugerido
-  const suggestedIncome = plan.suggestedCashFlow.income.reduce((sum, income) => {
+  const suggestedIncome = financialPlan.suggestedCashFlow.income.reduce((sum, income) => {
     if (income.frequency === 'monthly') {
       return sum + income.amount;
     } else if (income.frequency === 'annual') {
@@ -488,7 +373,7 @@ export const calculateInvestmentProjection = (client: Client, plan: FinancialPla
     }
   }, 0);
   
-  const suggestedExpenses = plan.suggestedCashFlow.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const suggestedExpenses = financialPlan.suggestedCashFlow.expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const monthlySurplus = suggestedIncome - suggestedExpenses;
   
   // Assumir que 50% do superávit vai para investimentos
@@ -520,7 +405,7 @@ export const calculateInvestmentProjection = (client: Client, plan: FinancialPla
   const projectedValue20Years = calculateFutureValue(initialInvestment, monthlyContribution, expectedReturnRate, 20);
   
   // Calcular meta de aposentadoria
-  const retirementGoal = plan.financialGoals.find(goal => goal.description === 'Aposentadoria');
+  const retirementGoal = financialPlan.financialGoals.find(goal => goal.description === 'Aposentadoria');
   const targetAmount = retirementGoal?.targetAmount || suggestedIncome * 300; // 25 anos de renda
   
   // Calcular anos até a aposentadoria
@@ -542,9 +427,8 @@ export const calculateInvestmentProjection = (client: Client, plan: FinancialPla
   };
 };
 
-// Função para analisar dívidas
-export const analyzeDebts = (client: Client, plan: FinancialPlan): DebtAnalysis => {
-  const debts = plan.debts;
+export const analyzeDebts = (client: Client, financialPlan: FinancialPlan): DebtAnalysis => {
+  const debts = financialPlan.debts;
   
   // Calcular total da dívida
   const totalDebt = debts.reduce((sum, debt) => sum + debt.currentValue, 0);
@@ -611,4 +495,4 @@ export const analyzeDebts = (client: Client, plan: FinancialPlan): DebtAnalysis 
     amortizationSchedule,
     recommendedPayoffStrategy
   };
-}; 
+};
