@@ -29,18 +29,26 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
     return { income: totalIncome, expenses: totalExpenses, balance, savingsRate };
   };
   
-  const essentialExpenses = (cashFlow?: CashFlow) => {
-    if (!cashFlow) return { total: 0, percentage: 0, items: [] };
+  const categorizeExpenses = (cashFlow?: CashFlow) => {
+    if (!cashFlow) return { essential: 0, nonEssential: 0, essentialItems: [], nonEssentialItems: [] };
     
     const essentialItems = cashFlow.expenses?.filter(exp => 
       exp.isEssential || exp.category === 'Essencial' || exp.category === 'Moradia'
     ) || [];
     
-    const total = essentialItems.reduce((sum, exp) => sum + exp.amount, 0);
-    const allExpenses = cashFlow.expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
-    const percentage = allExpenses > 0 ? (total / allExpenses) * 100 : 0;
+    const nonEssentialItems = cashFlow.expenses?.filter(exp => 
+      !exp.isEssential && exp.category !== 'Essencial' && exp.category !== 'Moradia'
+    ) || [];
     
-    return { total, percentage, items: essentialItems };
+    const essentialTotal = essentialItems.reduce((sum, exp) => sum + exp.amount, 0);
+    const nonEssentialTotal = nonEssentialItems.reduce((sum, exp) => sum + exp.amount, 0);
+    
+    return { 
+      essential: essentialTotal, 
+      nonEssential: nonEssentialTotal,
+      essentialItems,
+      nonEssentialItems
+    };
   };
   
   const formatCurrency = (value: number) => {
@@ -53,8 +61,8 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
   const currentTotals = calculateTotals(currentCashFlow);
   const suggestedTotals = calculateTotals(suggestedCashFlow);
   
-  const currentEssential = essentialExpenses(currentCashFlow);
-  const suggestedEssential = essentialExpenses(suggestedCashFlow);
+  const currentExpenses = categorizeExpenses(currentCashFlow);
+  const suggestedExpenses = categorizeExpenses(suggestedCashFlow);
   
   // Verificar se há dados para exibir
   if (!currentCashFlow && !suggestedCashFlow) {
@@ -70,10 +78,10 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
     );
   }
   
-  const CashFlowVisualizer = ({ title, totals, essential, cashFlow }: { 
+  const CashFlowVisualizer = ({ title, totals, expenses, cashFlow }: { 
     title: string, 
-    totals: ReturnType<typeof calculateTotals>, 
-    essential: ReturnType<typeof essentialExpenses>,
+    totals: ReturnType<typeof calculateTotals>,
+    expenses: ReturnType<typeof categorizeExpenses>,
     cashFlow?: CashFlow
   }) => (
     <div className="space-y-4">
@@ -90,10 +98,10 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
       <div className="space-y-1">
         <div className="flex justify-between items-center">
           <span>Despesas Essenciais</span>
-          <span className="font-semibold">{formatCurrency(essential.total)}</span>
+          <span className="font-semibold">{formatCurrency(expenses.essential)}</span>
         </div>
         <Progress 
-          value={totals.income > 0 ? (essential.total / totals.income) * 100 : 0} 
+          value={totals.income > 0 ? (expenses.essential / totals.income) * 100 : 0} 
           className="h-2 bg-amber-100" 
         />
       </div>
@@ -101,10 +109,10 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
       <div className="space-y-1">
         <div className="flex justify-between items-center">
           <span>Despesas Não Essenciais</span>
-          <span className="font-semibold">{formatCurrency(totals.expenses - essential.total)}</span>
+          <span className="font-semibold">{formatCurrency(expenses.nonEssential)}</span>
         </div>
         <Progress 
-          value={totals.income > 0 ? ((totals.expenses - essential.total) / totals.income) * 100 : 0} 
+          value={totals.income > 0 ? (expenses.nonEssential / totals.income) * 100 : 0} 
           className="h-2 bg-red-100" 
         />
       </div>
@@ -138,11 +146,25 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
         </div>
       </div>
       
-      {cashFlow?.expenses && cashFlow.expenses.length > 0 && (
+      {expenses.essentialItems.length > 0 && (
         <div className="pt-4 border-t">
-          <h4 className="font-medium mb-2">Detalhamento de Despesas</h4>
+          <h4 className="font-medium mb-2">Despesas Essenciais</h4>
           <div className="space-y-2">
-            {cashFlow.expenses.map((expense, idx) => (
+            {expenses.essentialItems.map((expense, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span>{expense.description}</span>
+                <span>{formatCurrency(expense.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {expenses.nonEssentialItems.length > 0 && (
+        <div className="pt-4 border-t">
+          <h4 className="font-medium mb-2">Despesas Não Essenciais</h4>
+          <div className="space-y-2">
+            {expenses.nonEssentialItems.map((expense, idx) => (
               <div key={idx} className="flex justify-between text-sm">
                 <span>{expense.description}</span>
                 <span>{formatCurrency(expense.amount)}</span>
@@ -169,7 +191,7 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
           <CashFlowVisualizer 
             title="Fluxo Atual" 
             totals={currentTotals} 
-            essential={currentEssential} 
+            expenses={currentExpenses} 
             cashFlow={currentCashFlow}
           />
           
@@ -182,7 +204,7 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
               <CashFlowVisualizer 
                 title="Fluxo Sugerido" 
                 totals={suggestedTotals} 
-                essential={suggestedEssential} 
+                expenses={suggestedExpenses} 
                 cashFlow={suggestedCashFlow}
               />
             </>

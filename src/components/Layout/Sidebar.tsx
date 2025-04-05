@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function Sidebar() {
     <div className="h-screen w-64 bg-finance-darkblue text-white flex flex-col">
       <div className="p-4 font-semibold text-lg border-b border-finance-navy">
         <h1 className="text-xl">Plan Forge</h1>
-        <p className="text-sm text-gray-400">Financial Planning</p>
+        <p className="text-sm text-gray-400">Planejamento Financeiro</p>
       </div>
       
       <nav className="flex-1 px-2 py-4">
@@ -74,37 +75,37 @@ export function Sidebar() {
           <SidebarItem 
             to={createLink("/cash-flow")}
             icon={<DollarSign size={18} />} 
-            label="Cash Flow" 
+            label="Fluxo de Caixa" 
             active={path === '/cash-flow' || path.startsWith('/cash-flow/')} 
           />
           <SidebarItem 
             to={createLink("/budget")}
             icon={<TrendingUp size={18} />} 
-            label="Budget" 
+            label="Orçamento" 
             active={path === '/budget' || path.startsWith('/budget/')} 
           />
           <SidebarItem 
             to={createLink("/investments")}
             icon={<LineChart size={18} />} 
-            label="Investments" 
+            label="Investimentos" 
             active={path === '/investments' || path.startsWith('/investments/')} 
           />
           <SidebarItem 
             to={createLink("/emergency-fund")}
             icon={<Shield size={18} />} 
-            label="Emergency Fund" 
+            label="Reserva de Emergência" 
             active={path === '/emergency-fund' || path.startsWith('/emergency-fund/')} 
           />
           <SidebarItem 
             to={createLink("/income-protection")}
             icon={<LifeBuoy size={18} />} 
-            label="Income Protection" 
+            label="Proteção de Renda" 
             active={path === '/income-protection' || path.startsWith('/income-protection/')} 
           />
           <SidebarItem 
             to={createLink("/retirement")}
             icon={<Target size={18} />} 
-            label="Retirement" 
+            label="Aposentadoria" 
             active={path === '/retirement' || path.startsWith('/retirement/')} 
           />
           <div className="pt-4 mt-4 border-t border-finance-navy">
