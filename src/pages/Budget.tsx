@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -25,6 +24,7 @@ export default function Budget() {
   const [currentCashFlow, setCurrentCashFlow] = useState<CashFlow | null>(null);
   const [suggestedCashFlow, setSuggestedCashFlow] = useState<CashFlow | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("comparacao");
   const { toast } = useToast();
 
@@ -36,26 +36,62 @@ export default function Budget() {
 
   useEffect(() => {
     const loadClientData = async () => {
-      if (clientId) {
-        setLoading(true);
-        const client = loadClient(clientId);
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Verificar cliente no contexto ou por ID
+        let client: Client | null = null;
         
-        if (client) {
-          const plan = createFinancialPlanFromClient(client);
-          setFinancialPlan(plan);
-          setCurrentCashFlow(plan.currentCashFlow);
-          setSuggestedCashFlow(plan.suggestedCashFlow);
-
-          // Inicializar dados para edição
-          initializeEditData(plan.currentCashFlow);
+        if (clientId) {
+          console.log("Carregando cliente por ID:", clientId);
+          client = loadClient(clientId);
+        } else if (currentClient) {
+          console.log("Usando cliente do contexto:", currentClient.id);
+          client = currentClient;
+        } else {
+          // Redirecionar para a lista de clientes
+          console.log("Nenhum cliente disponível, redirecionando");
+          navigate('/clients');
+          return;
         }
         
+        if (!client) {
+          setError("Cliente não encontrado");
+          setLoading(false);
+          return;
+        }
+        
+        console.log("Cliente carregado:", client.name);
+        
+        // Criar plano financeiro
+        const plan = createFinancialPlanFromClient(client);
+        console.log("Plano financeiro criado:", !!plan);
+        
+        if (!plan) {
+          setError("Erro ao criar plano financeiro");
+          setLoading(false);
+          return;
+        }
+        
+        // Atualizar estados
+        setFinancialPlan(plan);
+        setCurrentCashFlow(plan.currentCashFlow);
+        setSuggestedCashFlow(plan.suggestedCashFlow);
+        
+        // Inicializar dados para edição
+        initializeEditData(plan.currentCashFlow);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        setError("Erro ao carregar dados do orçamento");
         setLoading(false);
       }
     };
 
     loadClientData();
-  }, [clientId, loadClient]);
+  }, [clientId, currentClient, navigate]);
 
   // Inicializar dados para edição a partir do fluxo de caixa atual
   const initializeEditData = (cashFlow?: CashFlow) => {
@@ -339,6 +375,14 @@ export default function Budget() {
           <div className="flex justify-center items-center h-64">
             <p>Carregando dados do orçamento...</p>
           </div>
+        ) : error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro</AlertTitle>
+            <AlertDescription>
+              {error}
+            </AlertDescription>
+          </Alert>
         ) : !currentClient ? (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />

@@ -1,4 +1,3 @@
-
 export interface Client {
   id: string;
   name: string;
@@ -126,6 +125,9 @@ export interface Client {
     deadline: string;
     comments: string;
   }[];
+  
+  planner_id: string;
+  isActive: boolean;
 }
 
 export interface Income {
@@ -232,14 +234,58 @@ export interface InvestmentProjection {
 }
 
 export interface DebtAnalysis {
-  totalDebt: number;
-  monthlyDebtPayments: number;
-  hasHighInterestDebt: boolean;
-  highInterestDebtCount: number;
+  highInterestDebts: Debt[];
+  totalHighInterestDebt: number;
+  debtToIncomeRatio: number;
+  monthsToPayoff: number;
+  interestPaid: number;
   debtFreeDate: string;
-  amortizationSchedule: {
-    month: string;
-    remainingDebt: number;
+}
+
+export interface LiquidityEvent {
+  description: string;
+  amount: number;
+  date: string; // formato AAAA-MM-DD
+  year: number;  // ano calculado a partir da data (para facilitar cálculos)
+  age: number;   // idade do cliente neste evento
+}
+
+export interface RetirementPlan {
+  initialInvestment: number;
+  monthlyContribution: number;
+  contributionIncreaseRate: number;
+  expectedReturnRate: number;
+  inflationRate: number;
+  currentAge: number;
+  retirementAge: number;
+  lifeExpectancy: number;
+  targetMonthlyIncome: number;
+  currentSavings: number;
+  projectedSavings: number;
+  yearsToRetirement: number;
+  financialIndependenceAge: number;
+  liquidityEvents: LiquidityEvent[];
+  projectedYearlyData: {
+    age: number;
+    year: number;
+    savingsBalance: number;
+    contributionsToDate: number;
+    returnToDate: number;
+    withdrawalPotential: number;
+    monthlyContribution: number;
   }[];
-  recommendedPayoffStrategy: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  created_at?: string;
+}
+
+export interface Planner {
+  id: string;
+  name: string;
+  email: string;
+  created_at?: string;
+  updated_at?: string;
 }
