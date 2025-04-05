@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Search, Eye } from 'lucide-react';
@@ -19,7 +20,7 @@ const Clients = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Load clients from service on component mount
+    // Carrega clientes do serviço ao montar o componente
     const storedClients = getClients();
     setClients(storedClients);
   }, []);
@@ -27,7 +28,7 @@ const Clients = () => {
   const handleAddClient = (clientData: Omit<Client, 'id'>) => {
     const newClient: Client = {
       ...clientData,
-      id: Date.now().toString(), // Generate a simple ID
+      id: Date.now().toString(), // Gera um ID simples
     };
     
     const updatedClients = [...clients, newClient];

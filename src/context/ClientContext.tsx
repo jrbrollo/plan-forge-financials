@@ -14,13 +14,28 @@ interface ClientContextType {
   getFinancialData: (client: Client) => any;
 }
 
-// Create the context with undefined as the default value
+// Criação do contexto com valor padrão undefined
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
-// Export the ClientContext Provider component
+// Componente Provider do contexto
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const { toast } = useToast();
+
+  // Carregar cliente do localStorage se existir um ID salvo
+  useEffect(() => {
+    const savedClientId = localStorage.getItem("currentClientId");
+    if (savedClientId) {
+      loadClient(savedClientId);
+    }
+  }, []);
+
+  // Salvar ID do cliente atual no localStorage quando mudar
+  useEffect(() => {
+    if (currentClient?.id) {
+      localStorage.setItem("currentClientId", currentClient.id);
+    }
+  }, [currentClient]);
 
   const loadClient = (clientId: string): Client | null => {
     try {
@@ -71,6 +86,10 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
       
+      // Atualizar timestamp
+      clientData.updatedAt = new Date().toISOString();
+      
+      // Salvar no localStorage
       saveClient(clientData);
       setCurrentClient(clientData);
       toast({
@@ -135,7 +154,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-// Export the hook that allows components to access the context
+// Hook para acessar o contexto
 export const useClient = (): ClientContextType => {
   const context = useContext(ClientContext);
   if (context === undefined) {
