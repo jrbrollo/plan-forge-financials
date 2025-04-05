@@ -14,8 +14,10 @@ interface ClientContextType {
   getFinancialData: (client: Client) => any;
 }
 
+// Create the context with undefined as the default value
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
+// Export the ClientContext Provider component
 export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const { toast } = useToast();
@@ -133,6 +135,7 @@ export const ClientProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
+// Export the hook that allows components to access the context
 export const useClient = (): ClientContextType => {
   const context = useContext(ClientContext);
   if (context === undefined) {
