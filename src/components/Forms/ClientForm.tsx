@@ -25,7 +25,9 @@ export function ClientForm({ onSave, onCancel, initialValues = {}, isSimpleForm 
       name,
       age,
       email,
-      phone
+      phone,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     });
   };
 

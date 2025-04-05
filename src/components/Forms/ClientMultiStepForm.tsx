@@ -237,6 +237,10 @@ export function ClientMultiStepForm({ onSave, onCancel, initialValues = {} }: Cl
       // Objetivos Financeiros
       retirement,
       otherGoals,
+      
+      // Required fields
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     onSave(clientData);

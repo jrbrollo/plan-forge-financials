@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -93,6 +94,8 @@ export interface Client {
   }[];
   
   // Proteções
+  hasHealthInsurance?: boolean;
+  hasLifeInsurance?: boolean;
   hasAssetInsurance?: boolean;
   
   // Imposto de Renda
