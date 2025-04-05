@@ -9,6 +9,7 @@ import {
   InvestmentProjection,
   DebtAnalysis
 } from '@/lib/types';
+import { createInvestmentsFromClient } from './investmentService';
 
 export const createFinancialPlanFromClient = (client: Client): FinancialPlan => {
   const monthlyIncome = client.monthlyNetIncome || client.income || 0;
@@ -253,10 +254,19 @@ export const createFinancialPlanFromClient = (client: Client): FinancialPlan => 
     emergencyFund = client.totalInvestments * 0.2;  // Assume 20% of investments are emergency fund
   }
 
+  // Convert client's debt format to match the Debt interface
+  const convertedDebts: Debt[] = client.debts ? client.debts.map(debt => ({
+    description: debt.reason,
+    currentValue: debt.value,
+    interestRate: 0.15, // Default interest rate if not provided
+    monthlyPayment: debt.monthlyPayment,
+    remainingMonths: Math.ceil(debt.value / debt.monthlyPayment) // Estimate remaining months
+  })) : [];
+
   return {
     financialGoals,
     assets,
-    debts: client.debts || [],
+    debts: convertedDebts,
     currentCashFlow,
     suggestedCashFlow,
     emergencyFund,
