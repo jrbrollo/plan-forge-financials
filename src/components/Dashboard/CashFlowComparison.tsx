@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -69,10 +70,11 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
     );
   }
   
-  const CashFlowVisualizer = ({ title, totals, essential }: { 
+  const CashFlowVisualizer = ({ title, totals, essential, cashFlow }: { 
     title: string, 
     totals: ReturnType<typeof calculateTotals>, 
-    essential: ReturnType<typeof essentialExpenses> 
+    essential: ReturnType<typeof essentialExpenses>,
+    cashFlow?: CashFlow
   }) => (
     <div className="space-y-4">
       <h3 className="font-semibold text-lg">{title}</h3>
@@ -123,18 +125,32 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
       <div className="pt-4 border-t">
         <h4 className="font-medium mb-2">Detalhamento de Receitas</h4>
         <div className="space-y-2">
-          {currentCashFlow?.income?.map((income, idx) => (
-            <div key={idx} className="flex justify-between text-sm">
-              <span>{income.source || income.description || "Receita"}</span>
-              <span>{formatCurrency(income.amount)}</span>
-            </div>
-          ))}
-          
-          {(!currentCashFlow?.income || currentCashFlow.income.length === 0) && (
+          {cashFlow?.income && cashFlow.income.length > 0 ? (
+            cashFlow.income.map((income, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span>{income.description}</span>
+                <span>{formatCurrency(income.amount)}</span>
+              </div>
+            ))
+          ) : (
             <div className="text-sm text-gray-500">Nenhuma receita registrada</div>
           )}
         </div>
       </div>
+      
+      {cashFlow?.expenses && cashFlow.expenses.length > 0 && (
+        <div className="pt-4 border-t">
+          <h4 className="font-medium mb-2">Detalhamento de Despesas</h4>
+          <div className="space-y-2">
+            {cashFlow.expenses.map((expense, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span>{expense.description}</span>
+                <span>{formatCurrency(expense.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
   
@@ -154,6 +170,7 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
             title="Fluxo Atual" 
             totals={currentTotals} 
             essential={currentEssential} 
+            cashFlow={currentCashFlow}
           />
           
           {suggestedCashFlow && (
@@ -166,6 +183,7 @@ export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
                 title="Fluxo Sugerido" 
                 totals={suggestedTotals} 
                 essential={suggestedEssential} 
+                cashFlow={suggestedCashFlow}
               />
             </>
           )}

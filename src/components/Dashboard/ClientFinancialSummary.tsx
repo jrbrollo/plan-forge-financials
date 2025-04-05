@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -28,9 +29,9 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
   };
 
   // Calcular totais
+  const totalIncome = financialPlan?.currentCashFlow?.income?.reduce((sum, income) => sum + income.amount, 0) || 0;
   const totalAssets = financialPlan?.assets?.reduce((sum, asset) => sum + asset.currentValue, 0) || 0;
   const totalDebts = financialPlan?.debts?.reduce((sum, debt) => sum + debt.currentValue, 0) || 0;
-  const totalIncome = financialPlan?.currentCashFlow?.income?.reduce((sum, income) => sum + income.amount, 0) || 0;
   const totalExpenses = financialPlan?.currentCashFlow?.expenses?.reduce((sum, expense) => sum + expense.amount, 0) || 0;
   
   // Calcular métricas
@@ -79,7 +80,7 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
               className="h-2 mb-2" 
             />
             <p className="text-sm text-gray-600">
-              Sua saúde financeira está classificada como <span className="font-medium">{financialHealth?.overallStatus}</span>
+              Sua saúde financeira está classificada como <span className="font-medium">{financialHealth?.overallStatus || "Não avaliada"}</span>
             </p>
           </div>
 
@@ -91,7 +92,7 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
                 Patrimônio Líquido
               </h3>
               <span className={`text-lg font-bold ${financialHealth?.netWorth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(financialHealth?.netWorth || 0)}
+                {formatCurrency(financialHealth?.netWorth || (totalAssets - totalDebts))}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -115,13 +116,13 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
               </h3>
               <span className={`text-lg font-bold ${financialHealth?.savingsRate >= 15 ? 'text-green-600' : 
                 financialHealth?.savingsRate >= 5 ? 'text-amber-600' : 'text-red-600'}`}>
-                {(financialHealth?.savingsRate || 0).toFixed(1)}%
+                {(financialHealth?.savingsRate || ((totalIncome - totalExpenses) / totalIncome * 100) || 0).toFixed(1)}%
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <p className="text-gray-500">Renda</p>
-                <p className="font-medium">{formatCurrency(totalIncome)}</p>
+                <p className="font-medium">{formatCurrency(totalIncome || client.monthlyNetIncome || client.income || 0)}</p>
               </div>
               <div>
                 <p className="text-gray-500">Despesas</p>
@@ -129,7 +130,7 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
               </div>
             </div>
             <Progress 
-              value={Math.min(financialHealth?.savingsRate * 2.5 || 0, 100)}
+              value={Math.min(financialHealth?.savingsRate * 2.5 || ((totalIncome - totalExpenses) / totalIncome * 100 * 2.5) || 0, 100)}
               className="h-1 mt-2" 
             />
           </div>
@@ -162,11 +163,11 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
                 Dívidas
               </h3>
               <span className={`text-sm font-medium ${hasHighDebtRatio ? 'text-red-600' : 'text-green-600'}`}>
-                {(financialHealth?.debtToIncomeRatio || 0).toFixed(2)}x da renda mensal
+                {(financialHealth?.debtToIncomeRatio || (totalDebts / totalIncome) || 0).toFixed(2)}x da renda mensal
               </span>
             </div>
             
-            {financialPlan?.debts?.length === 0 ? (
+            {!financialPlan?.debts || financialPlan.debts.length === 0 ? (
               <p className="text-sm text-green-600">Você não possui dívidas registradas!</p>
             ) : (
               <div className="space-y-3">
@@ -227,4 +228,4 @@ export const ClientFinancialSummary: React.FC<ClientFinancialSummaryProps> = ({
       </CardContent>
     </Card>
   );
-}; 
+};
