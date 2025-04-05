@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar Cliente Teste</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Adicionar Cliente Teste - João da Silva</h1>
+    
+    <div class="success" id="success-message">
+        Cliente adicionado com sucesso ao localStorage!
+    </div>
+    
+    <p>Este é um cliente teste completo com todas as informações preenchidas.</p>
+    
+    <button id="add-client">Adicionar João ao Sistema</button>
+    
+    <h2>Detalhes do Cliente:</h2>
+    <pre id="client-details"></pre>
+    
+    <script>
+        // Dados do cliente João
+        const clienteJoao = {
+          id: 'joao-' + Date.now().toString(),
+          name: 'João da Silva',
+          age: 35,
+          email: 'joao.silva@example.com',
+          phone: '(11) 98765-4321',
+          
+          // Dados Pessoais
+          maritalStatus: 'Casado(a)',
+          hasChildren: true,
+          numberOfChildren: 2,
+          childrenAges: [8, 5],
+          personalComments: 'João é uma pessoa dedicada e quer garantir uma boa aposentadoria e faculdade para os filhos.',
+          
+          // Profissão e Trabalho
+          profession: 'Programador',
+          jobDescription: 'Trabalha como desenvolvedor full-stack em uma empresa de tecnologia, com foco em JavaScript e TypeScript.',
+          workMotivation: 'Ambos',
+          contractType: 'CLT',
+          
+          // Perfil Financeiro
+          moneyProfile: 'Meio-termo',
+          hasFinancialPlanning: true,
+          planningDescription: 'Faz planilha mensal de gastos e tenta economizar parte do salário todo mês.',
+          hasSavingHabit: true,
+          savingHabitHistory: 'Tem o hábito de poupar há cerca de 5 anos, mas nem sempre consegue manter a disciplina.',
+          monthlySavingsAverage: 1500,
+          financialProfileComments: 'Deseja ter mais disciplina financeira e aprender a investir melhor o dinheiro poupado.',
+          
+          // Instituições Bancárias
+          banks: ['Nubank', 'Itaú', 'Banco do Brasil'],
+          paymentMethod: 'Ambos',
+          creditCards: ['Nubank', 'Itaú Platinum'],
+          creditCardBillAverage: 2500,
+          
+          // Carro
+          hasCar: true,
+          isCarPaidOff: false,
+          carMarketValue: 45000,
+          carMonthlyPayment: 850,
+          carPaymentRemaining: '18 meses',
+          
+          // Imóvel
+          hasProperty: true,
+          isPropertyPaidOff: false,
+          propertyMarketValue: 450000,
+          propertyMonthlyPayment: 2200,
+          propertyPaymentRemaining: '15 anos',
+          
+          // Outros bens
+          otherAssets: 'Possui uma moto Honda CB 500 quitada (R$ 25.000) e uma bicicleta elétrica (R$ 8.000).',
+          
+          // Investimentos
+          hasInvestments: true,
+          totalInvestments: 65000,
+          hasDiversifiedPortfolio: true,
+          investmentsDescription: 'Possui R$ 30.000 em Tesouro Direto, R$ 20.000 em fundos de investimento e R$ 15.000 em ações de empresas brasileiras.',
+          selfManagesInvestments: true,
+          
+          // Dívidas
+          debts: [
+            {
+              value: 12000,
+              monthlyPayment: 500,
+              reason: 'Empréstimo para reforma do apartamento'
+            }
+          ],
+          
+          // Proteções
+          hasHealthInsurance: true,
+          hasLifeInsurance: false,
+          hasAssetInsurance: true,
+          
+          // Imposto de Renda
+          taxDeclarationType: 'Completo',
+          taxResult: 'Restituir',
+          
+          // Receitas
+          monthlyNetIncome: 8500,
+          additionalIncome: 'Ocasionalmente faz freelas de programação, com média de R$ 2.000 extras por trimestre.',
+          
+          // Despesas
+          fixedMonthlyExpenses: 'Moradia (financiamento): R$ 2.200, Carro: R$ 850, Escola dos filhos: R$ 1.800, Plano de saúde: R$ 1.200, Supermercado: R$ 1.500',
+          variableExpenses: 'Lazer: média de R$ 800, Alimentação fora: R$ 600, Despesas extras com filhos: cerca de R$ 500',
+          
+          // Objetivos Financeiros - Aposentadoria
+          retirement: {
+            plan: 'Deseja parar de trabalhar aos 60 anos com uma renda passiva suficiente para manter o padrão de vida atual.',
+            inssKnowledge: 'Tem conhecimento básico, sabe que precisará complementar a aposentadoria do INSS.',
+            desiredPassiveIncome: 10000,
+            estimatedAmountNeeded: 2500000,
+            targetDate: '25 anos',
+            comments: 'Está preocupado se conseguirá acumular o patrimônio necessário para a aposentadoria desejada.'
+          },
+          
+          // Objetivos Financeiros - Outros
+          otherGoals: [
+            {
+              description: 'Faculdade dos filhos',
+              amountNeeded: 200000,
+              deadline: '10 anos',
+              comments: 'Gostaria de garantir boa educação superior para os dois filhos.'
+            },
+            {
+              description: 'Troca de carro',
+              amountNeeded: 80000,
+              deadline: '5 anos',
+              comments: 'Deseja trocar o carro atual por um modelo mais moderno após quitar o financiamento.'
+            }
+          ]
+        };
+        
+        // Exibir detalhes do cliente na página
+        document.getElementById('client-details').textContent = JSON.stringify(clienteJoao, null, 2);
+        
+        // Função para adicionar o cliente ao localStorage
+        document.getElementById('add-client').addEventListener('click', function() {
+            // Obter clientes existentes ou criar um array vazio
+            let clients = [];
+            try {
+                const existingClients = localStorage.getItem('clients');
+                if (existingClients) {
+                    clients = JSON.parse(existingClients);
+                }
+            } catch (error) {
+                console.error('Erro ao obter clientes existentes:', error);
+            }
+            
+            // Verificar se é um array
+            if (!Array.isArray(clients)) {
+                clients = [];
+            }
+            
+            // Verificar se o cliente já existe
+            const exists = clients.some(client => client.id === clienteJoao.id);
+            if (!exists) {
+                // Adicionar o cliente
+                clients.push(clienteJoao);
+                
+                // Salvar no localStorage
+                localStorage.setItem('clients', JSON.stringify(clients));
+                
+                // Mostrar mensagem de sucesso
+                document.getElementById('success-message').style.display = 'block';
+            } else {
+                alert('Este cliente já existe no sistema!');
+            }
+        });
+    </script>
+</body>
+</html> 

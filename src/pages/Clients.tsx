@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Search, Eye } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ClientForm } from "@/components/Forms/ClientForm";
+import { ClientFormToggle } from "@/components/Forms/ClientFormToggle";
 import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/Layout/Sidebar";
 import { getClients, saveClients } from "@/services/clientService";
@@ -17,6 +16,7 @@ const Clients = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     // Load clients from service on component mount
@@ -70,7 +70,7 @@ const Clients = () => {
 
         {showAddForm && (
           <div className="mb-6">
-            <ClientForm
+            <ClientFormToggle
               onSave={handleAddClient}
               onCancel={() => setShowAddForm(false)}
             />
@@ -118,11 +118,13 @@ const Clients = () => {
                       <TableCell>{client.email}</TableCell>
                       <TableCell>{client.phone}</TableCell>
                       <TableCell className="text-right">
-                        <Link to={`/clients/${client.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-1" /> Detalhes
-                          </Button>
-                        </Link>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/clients/${client.id}`)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" /> Detalhes
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

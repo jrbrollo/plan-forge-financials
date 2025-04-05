@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { cn } from "@/lib/utils";
@@ -11,7 +10,9 @@ import {
   LineChart, 
   LifeBuoy,
   User,
-  Users
+  Users,
+  Target,
+  Settings
 } from "lucide-react";
 
 interface SidebarItemProps {
@@ -102,10 +103,18 @@ export function Sidebar() {
           />
           <SidebarItem 
             to={createLink("/retirement")}
-            icon={<LineChart size={18} />} 
+            icon={<Target size={18} />} 
             label="Retirement" 
             active={path === '/retirement' || path.startsWith('/retirement/')} 
           />
+          <div className="pt-4 mt-4 border-t border-finance-navy">
+            <SidebarItem 
+              to="/admin" 
+              icon={<Settings size={18} />} 
+              label="Administração" 
+              active={path === '/admin'} 
+            />
+          </div>
         </ul>
       </nav>
       

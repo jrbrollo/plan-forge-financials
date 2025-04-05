@@ -4,6 +4,35 @@ export interface Client {
   age: number;
   email: string;
   phone: string;
+  profession?: string;
+  company?: string;
+  birthDate?: string;
+  income?: number;
+  incomeFrequency?: 'monthly' | 'annual';
+  address?: {
+    street: string;
+    number?: string;
+    complement?: string;
+    city: string;
+    state?: string;
+    zipcode?: string;
+  };
+  financialProfile?: {
+    riskTolerance?: 'low' | 'medium' | 'high';
+    investmentExperience?: 'none' | 'beginner' | 'intermediate' | 'advanced';
+    retirementAge?: number;
+    hasFinancialGoals?: boolean;
+    hasDependents?: boolean;
+  };
+  insuranceStatus?: {
+    lifeInsurance: boolean;
+    healthInsurance: boolean;
+    homeInsurance: boolean;
+    autoInsurance: boolean;
+    disabilityInsurance: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
   
   // Dados Pessoais
   maritalStatus?: "Solteiro(a)" | "Casado(a)" | "Divorciado(a)" | "Outro";
@@ -13,7 +42,6 @@ export interface Client {
   personalComments?: string;
   
   // Profissão e Trabalho
-  profession?: string;
   jobDescription?: string;
   workMotivation?: "Amor" | "Dinheiro" | "Ambos";
   contractType?: "CLT" | "PJ" | "Concursado" | "Outro";
@@ -65,8 +93,6 @@ export interface Client {
   }[];
   
   // Proteções
-  hasHealthInsurance?: boolean;
-  hasLifeInsurance?: boolean;
   hasAssetInsurance?: boolean;
   
   // Imposto de Renda
@@ -100,17 +126,19 @@ export interface Client {
 }
 
 export interface Income {
-  source: string;
+  source?: string;
+  description: string;
   amount: number;
-  frequency: "monthly" | "annual";
-  percentage: number;
+  frequency: "monthly" | "annual" | "one_time";
+  percentage?: number;
 }
 
 export interface Expense {
-  category: "fixed" | "variable";
   description: string;
   amount: number;
-  percentage: number;
+  category?: string;
+  percentage?: number;
+  isEssential?: boolean;
 }
 
 export interface Investment {
@@ -124,17 +152,18 @@ export interface Investment {
 
 export interface Debt {
   description: string;
-  outstandingBalance: number;
-  monthlyPayment: number;
+  currentValue: number;
   interestRate: number;
-  remainingInstallments: number;
+  monthlyPayment: number;
+  remainingMonths: number;
 }
 
 export interface Asset {
   description: string;
   currentValue: number;
-  acquisitionValue?: number;
-  acquisitionDate?: Date;
+  acquisitionDate: string;
+  type: 'real_estate' | 'investment' | 'vehicle' | 'other';
+  expectedReturn?: number;
 }
 
 export interface Protection {
@@ -148,29 +177,66 @@ export interface Protection {
 export interface FinancialGoal {
   description: string;
   targetAmount: number;
-  targetDate: Date;
   currentSavings: number;
-  monthlyContribution: number;
+  targetDate: string;
+  priority: 'high' | 'medium' | 'low';
 }
 
 export interface CashFlow {
-  incomes: Income[];
-  expenses: Expense[];
-  investments: number;
-  totalIncome: number;
-  totalExpenses: number;
-  balance: number;
+  income: {
+    description: string;
+    amount: number;
+    frequency: 'monthly' | 'annual' | 'one_time';
+  }[];
+  expenses: {
+    description: string;
+    amount: number;
+    category: string;
+    isEssential: boolean;
+  }[];
 }
 
 export interface FinancialPlan {
-  client: Client;
+  financialGoals: FinancialGoal[];
+  assets: Asset[];
+  debts: Debt[];
   currentCashFlow: CashFlow;
   suggestedCashFlow: CashFlow;
-  investments: Investment[];
-  debts: Debt[];
-  assets: Asset[];
-  protections: Protection[];
-  financialGoals: FinancialGoal[];
+  emergencyFund: number;
   emergencyFundTarget: number;
-  emergencyFundCurrent: number;
+}
+
+export interface FinancialHealth {
+  overallScore: number;
+  overallStatus: string;
+  scoreTrend: number;
+  netWorth: number;
+  debtToIncomeRatio: number;
+  emergencyFundMonths: number;
+  emergencyFundStatus: 'sufficient' | 'insufficient' | 'excessive';
+  savingsRate: number;
+}
+
+export interface InvestmentProjection {
+  initialInvestment: number;
+  monthlyContribution: number;
+  expectedReturnRate: number;
+  targetAmount: number;
+  yearsToRetirement: number;
+  projectedValue5Years: number;
+  projectedValue10Years: number;
+  projectedValue20Years: number;
+}
+
+export interface DebtAnalysis {
+  totalDebt: number;
+  monthlyDebtPayments: number;
+  hasHighInterestDebt: boolean;
+  highInterestDebtCount: number;
+  debtFreeDate: string;
+  amortizationSchedule: {
+    month: string;
+    remainingDebt: number;
+  }[];
+  recommendedPayoffStrategy: string;
 }

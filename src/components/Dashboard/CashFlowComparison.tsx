@@ -1,146 +1,176 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
-import { CashFlow } from '@/lib/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowUp, ArrowDown, ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
+import type { CashFlow } from '@/lib/types';
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface CashFlowComparisonProps {
-  currentCashFlow: CashFlow;
-  suggestedCashFlow: CashFlow;
+  currentCashFlow?: CashFlow;
+  suggestedCashFlow?: CashFlow;
 }
 
-export function CashFlowComparison({ currentCashFlow, suggestedCashFlow }: CashFlowComparisonProps) {
-  const COLORS = ['#0A1C45', '#6C81AC', '#38A169'];
-
-  const currentData = [
-    { name: 'Fixed Expenses', value: currentCashFlow.expenses.filter(e => e.category === 'fixed').reduce((acc, curr) => acc + curr.amount, 0) },
-    { name: 'Variable Expenses', value: currentCashFlow.expenses.filter(e => e.category === 'variable').reduce((acc, curr) => acc + curr.amount, 0) },
-    { name: 'Investments', value: currentCashFlow.investments },
-  ];
-
-  const suggestedData = [
-    { name: 'Fixed Expenses', value: suggestedCashFlow.expenses.filter(e => e.category === 'fixed').reduce((acc, curr) => acc + curr.amount, 0) },
-    { name: 'Variable Expenses', value: suggestedCashFlow.expenses.filter(e => e.category === 'variable').reduce((acc, curr) => acc + curr.amount, 0) },
-    { name: 'Investments', value: suggestedCashFlow.investments },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <Card className="finance-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg text-finance-navy">Current Cash Flow</CardTitle>
+export const CashFlowComparison: React.FC<CashFlowComparisonProps> = ({
+  currentCashFlow,
+  suggestedCashFlow
+}) => {
+  const calculateTotals = (cashFlow?: CashFlow) => {
+    if (!cashFlow) {
+      return { income: 0, expenses: 0, balance: 0, savingsRate: 0 };
+    }
+    
+    const totalIncome = cashFlow.income?.reduce((sum, inc) => sum + inc.amount, 0) || 0;
+    const totalExpenses = cashFlow.expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
+    const balance = totalIncome - totalExpenses;
+    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+    
+    return { income: totalIncome, expenses: totalExpenses, balance, savingsRate };
+  };
+  
+  const essentialExpenses = (cashFlow?: CashFlow) => {
+    if (!cashFlow) return { total: 0, percentage: 0, items: [] };
+    
+    const essentialItems = cashFlow.expenses?.filter(exp => 
+      exp.isEssential || exp.category === 'Essencial' || exp.category === 'Moradia'
+    ) || [];
+    
+    const total = essentialItems.reduce((sum, exp) => sum + exp.amount, 0);
+    const allExpenses = cashFlow.expenses?.reduce((sum, exp) => sum + exp.amount, 0) || 0;
+    const percentage = allExpenses > 0 ? (total / allExpenses) * 100 : 0;
+    
+    return { total, percentage, items: essentialItems };
+  };
+  
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+  
+  const currentTotals = calculateTotals(currentCashFlow);
+  const suggestedTotals = calculateTotals(suggestedCashFlow);
+  
+  const currentEssential = essentialExpenses(currentCashFlow);
+  const suggestedEssential = essentialExpenses(suggestedCashFlow);
+  
+  // Verificar se há dados para exibir
+  if (!currentCashFlow && !suggestedCashFlow) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Fluxo de Caixa</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={currentData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {currentData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="mt-4">
-            <div className="flex justify-between py-1">
-              <span>Total Income:</span>
-              <span className="font-semibold">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(currentCashFlow.totalIncome)}
-              </span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Total Expenses:</span>
-              <span className="font-semibold">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(currentCashFlow.totalExpenses)}
-              </span>
-            </div>
-            <div className="flex justify-between py-1 border-t">
-              <span>Balance:</span>
-              <span className={`font-semibold ${currentCashFlow.balance >= 0 ? 'text-finance-green' : 'text-finance-red'}`}>
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(currentCashFlow.balance)}
-              </span>
-            </div>
-          </div>
+          <p>Não há dados de fluxo de caixa disponíveis.</p>
         </CardContent>
       </Card>
+    );
+  }
+  
+  const CashFlowVisualizer = ({ title, totals, essential }: { 
+    title: string, 
+    totals: ReturnType<typeof calculateTotals>, 
+    essential: ReturnType<typeof essentialExpenses> 
+  }) => (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-lg">{title}</h3>
       
-      <Card className="finance-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg text-finance-navy">Suggested Cash Flow</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={suggestedData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {suggestedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <span>Receita Total</span>
+          <span className="font-semibold">{formatCurrency(totals.income)}</span>
+        </div>
+        <Progress value={100} className="h-2 bg-green-100" />
+      </div>
+      
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <span>Despesas Essenciais</span>
+          <span className="font-semibold">{formatCurrency(essential.total)}</span>
+        </div>
+        <Progress 
+          value={totals.income > 0 ? (essential.total / totals.income) * 100 : 0} 
+          className="h-2 bg-amber-100" 
+        />
+      </div>
+      
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <span>Despesas Não Essenciais</span>
+          <span className="font-semibold">{formatCurrency(totals.expenses - essential.total)}</span>
+        </div>
+        <Progress 
+          value={totals.income > 0 ? ((totals.expenses - essential.total) / totals.income) * 100 : 0} 
+          className="h-2 bg-red-100" 
+        />
+      </div>
+      
+      <div className="space-y-1">
+        <div className="flex justify-between items-center">
+          <span>Saldo</span>
+          <span className={`font-semibold ${totals.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(totals.balance)}
+          </span>
+        </div>
+        <Progress 
+          value={Math.min(Math.max(totals.balance > 0 ? (totals.balance / totals.income) * 100 : 0, 0), 100)} 
+          className="h-2" 
+        />
+      </div>
+      
+      <div className="pt-4 border-t">
+        <h4 className="font-medium mb-2">Detalhamento de Receitas</h4>
+        <div className="space-y-2">
+          {currentCashFlow?.income?.map((income, idx) => (
+            <div key={idx} className="flex justify-between text-sm">
+              <span>{income.source || income.description || "Receita"}</span>
+              <span>{formatCurrency(income.amount)}</span>
+            </div>
+          ))}
           
-          <div className="mt-4">
-            <div className="flex justify-between py-1">
-              <span>Total Income:</span>
-              <span className="font-semibold">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(suggestedCashFlow.totalIncome)}
-              </span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span>Total Expenses:</span>
-              <span className="font-semibold">
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(suggestedCashFlow.totalExpenses)}
-              </span>
-            </div>
-            <div className="flex justify-between py-1 border-t">
-              <span>Balance:</span>
-              <span className={`font-semibold ${suggestedCashFlow.balance >= 0 ? 'text-finance-green' : 'text-finance-red'}`}>
-                {new Intl.NumberFormat('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }).format(suggestedCashFlow.balance)}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {(!currentCashFlow?.income || currentCashFlow.income.length === 0) && (
+            <div className="text-sm text-gray-500">Nenhuma receita registrada</div>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
+  
+  return (
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Fluxo de Caixa</span>
+          <Badge variant={currentTotals.balance >= 0 ? "outline" : "destructive"}>
+            Taxa de Poupança: {currentTotals.savingsRate.toFixed(1)}%
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <CashFlowVisualizer 
+            title="Fluxo Atual" 
+            totals={currentTotals} 
+            essential={currentEssential} 
+          />
+          
+          {suggestedCashFlow && (
+            <>
+              <div className="hidden md:flex items-center justify-center">
+                <ArrowRight className="h-8 w-8 text-gray-400" />
+              </div>
+              
+              <CashFlowVisualizer 
+                title="Fluxo Sugerido" 
+                totals={suggestedTotals} 
+                essential={suggestedEssential} 
+              />
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

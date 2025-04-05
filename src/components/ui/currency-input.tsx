@@ -1,69 +1,64 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
-interface CurrencyInputProps {
+interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: number;
   onChange: (value: number) => void;
-  placeholder?: string;
+  prefix?: string;
   className?: string;
-  disabled?: boolean;
 }
 
-export function CurrencyInput({
-  value,
-  onChange,
-  placeholder = "R$ 0,00",
-  className = "",
-  disabled = false
+export function CurrencyInput({ 
+  value, 
+  onChange, 
+  prefix = 'R$ ', 
+  className,
+  ...props 
 }: CurrencyInputProps) {
-  const [displayValue, setDisplayValue] = useState("");
+  const [displayValue, setDisplayValue] = useState('');
   
-  // Format the value on initial load and when value prop changes
+  // Formata o valor como moeda (R$) ao carregar/alterar o valor
   useEffect(() => {
-    if (value !== undefined && value !== null) {
-      setDisplayValue(formatCurrency(value));
+    if (value || value === 0) {
+      const formatted = value.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      setDisplayValue(formatted);
+    } else {
+      setDisplayValue('');
     }
   }, [value]);
-  
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2
-    }).format(val);
-  };
 
-  const unformatCurrency = (val: string) => {
-    return parseFloat(val.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputVal = e.target.value;
-    const numericValue = unformatCurrency(inputVal);
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target.value;
     
-    onChange(numericValue);
-  };
-
-  const handleBlur = () => {
-    setDisplayValue(formatCurrency(value));
-  };
-
-  const handleFocus = () => {
-    // On focus, just show the number without currency formatting
-    setDisplayValue(value.toString().replace('.', ','));
+    // Remove tudo exceto números e ponto
+    const numericValue = input.replace(/[^\d]/g, '');
+    
+    if (numericValue === '') {
+      onChange(0);
+      return;
+    }
+    
+    // Converte para número e divide por 100 para considerar centavos
+    const numberValue = parseInt(numericValue, 10) / 100;
+    onChange(numberValue);
   };
 
   return (
-    <Input
-      type="text"
-      value={displayValue}
-      onChange={handleChange}
-      onBlur={handleBlur}
-      onFocus={handleFocus}
-      placeholder={placeholder}
-      className={className}
-      disabled={disabled}
-    />
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+        {prefix}
+      </span>
+      <Input
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        className={cn('pl-10', className)}
+        {...props}
+      />
+    </div>
   );
 }

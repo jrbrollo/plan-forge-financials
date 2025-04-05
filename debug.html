@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Depuração de LocalStorage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .danger {
+            background-color: #dc3545;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Depuração de LocalStorage - PlanForge</h1>
+    
+    <div class="success" id="success-message">
+        Operação realizada com sucesso!
+    </div>
+    
+    <div class="card">
+        <h2>Estado Atual</h2>
+        <p>Verificar e mostrar todos os clientes atualmente no LocalStorage.</p>
+        <button id="check-clients">Verificar Clientes</button>
+        <pre id="clients-info"></pre>
+    </div>
+    
+    <div class="card">
+        <h2>Adicionar Cliente de Teste</h2>
+        <p>Adicionar o cliente João da Silva com todos os dados preenchidos.</p>
+        <button id="add-client">Adicionar Cliente de Teste</button>
+    </div>
+    
+    <div class="card">
+        <h2>Limpar Dados</h2>
+        <p>Remover todos os clientes do LocalStorage (cuidado: esta ação não pode ser desfeita).</p>
+        <button id="clear-all" class="danger">Remover Todos os Clientes</button>
+    </div>
+    
+    <script src="debug-localStorage.js"></script>
+    <script>
+        document.getElementById('check-clients').addEventListener('click', function() {
+            // Capturar a saída do console
+            const oldConsoleLog = console.log;
+            const oldConsoleError = console.error;
+            let logs = [];
+            
+            console.log = function() {
+                logs.push(Array.from(arguments).join(' '));
+                oldConsoleLog.apply(console, arguments);
+            };
+            
+            console.error = function() {
+                logs.push('ERRO: ' + Array.from(arguments).join(' '));
+                oldConsoleError.apply(console, arguments);
+            };
+            
+            // Chamar a função
+            printClients();
+            
+            // Restaurar console original
+            console.log = oldConsoleLog;
+            console.error = oldConsoleError;
+            
+            // Mostrar logs no elemento pre
+            document.getElementById('clients-info').textContent = logs.join('\n');
+        });
+        
+        document.getElementById('add-client').addEventListener('click', function() {
+            addTestClient();
+            showSuccess('Cliente João da Silva adicionado com sucesso!');
+            // Atualizar a lista
+            document.getElementById('check-clients').click();
+        });
+        
+        document.getElementById('clear-all').addEventListener('click', function() {
+            if (confirm('Tem certeza que deseja remover TODOS os clientes? Esta ação não pode ser desfeita.')) {
+                clearAllClients();
+                showSuccess('Todos os clientes foram removidos do localStorage!');
+                // Atualizar a lista
+                document.getElementById('check-clients').click();
+            }
+        });
+        
+        function showSuccess(message) {
+            const successEl = document.getElementById('success-message');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Verificar clientes automaticamente ao carregar
+        document.getElementById('check-clients').click();
+    </script>
+</body>
+</html> 
