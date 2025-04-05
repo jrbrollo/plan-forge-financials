@@ -1,0 +1,25 @@
+[33mcommit 4a9fadcefcec01cef18bfc4f537476a130f3b4fb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Helio <helio.planejador@gmail.com>
+Date:   Sat Apr 5 16:04:49 2025 -0300
+
+    Implementa autenticação com Supabase e adiciona novas funcionalidades
+
+[33mcommit e013b8d6d97345b6607e2efed3c3311fdb517592[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 15:13:24 2025 +0000
+
+    Fix: Cash flow expenses display and budget editing
+    
+    Fixes the display of variable expenses in the cash flow section and enables budget editing in the budget tab.
+    Also translates the sidebar menu to Portuguese.
+
+[33mcommit e59cde564399420fed355502d64af06611e552ea[m
+Author: gpt-engineer-app[bot] <159125892+gpt-engineer-app[bot]@users.noreply.github.com>
+Date:   Sat Apr 5 14:47:23 2025 +0000
+
+    Fix: Implement client data persistence and UI improvements
+    
+    - Implement client data persistence using local storage.
+    - Translate the app to Portuguese (Brazil).
+    - Develop the Cash Flow and Emergency Fund pages.
+    - Improve the user interface and remove client-facing messages.
