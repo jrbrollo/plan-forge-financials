@@ -27,7 +27,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return <LoaderFull message="Verificando autenticação..." debug={`isLoading: ${isLoading}, user: ${user ? 'sim' : 'não'}`} />;
+    return <LoaderFull 
+      message="Verificando autenticação..." 
+      debug={`Estado atual: isLoading=${isLoading}, user=${user ? 'logado' : 'não logado'}`} 
+    />;
   }
   
   if (!user) {
@@ -41,8 +44,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const UnauthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
+  // Mostrar o loader apenas por um breve momento para evitar loops
   if (isLoading) {
-    return <LoaderFull message="Verificando sessão..." debug={`isLoading: ${isLoading}, user: ${user ? 'sim' : 'não'}`} />;
+    return <LoaderFull 
+      message="Preparando..." 
+      debug={`Rota não autenticada: isLoading=${isLoading}, user=${user ? 'logado' : 'não logado'}`} 
+    />;
   }
   
   if (user) {
@@ -60,26 +67,10 @@ const App = () => {
           <Suspense fallback={<LoaderFull message="Carregando aplicação..." />}>
             <Routes>
               {/* Rotas públicas de autenticação */}
-              <Route path="/login" element={
-                <UnauthenticatedRoute>
-                  <Login />
-                </UnauthenticatedRoute>
-              } />
-              <Route path="/register" element={
-                <UnauthenticatedRoute>
-                  <Register />
-                </UnauthenticatedRoute>
-              } />
-              <Route path="/reset-password" element={
-                <UnauthenticatedRoute>
-                  <ResetPassword />
-                </UnauthenticatedRoute>
-              } />
-              <Route path="/forgot-password" element={
-                <UnauthenticatedRoute>
-                  <ForgotPassword />
-                </UnauthenticatedRoute>
-              } />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               
               {/* Rotas protegidas */}
               <Route path="/" element={

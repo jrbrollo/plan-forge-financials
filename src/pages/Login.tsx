@@ -17,18 +17,13 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [renderCount, setRenderCount] = useState(0);
   
+  // Incrementar contador de renderizações para debug
   useEffect(() => {
-    // Adicionar informações de debug
-    setDebugInfo(`authLoading: ${authLoading}, user: ${user ? 'logado' : 'não logado'}`);
-    console.log("Login component mounted", { authLoading, user });
-    
-    // Se já estiver logado, redirecionar para /clients
-    if (user) {
-      navigate('/clients');
-    }
-  }, [authLoading, user, navigate]);
+    setRenderCount(prev => prev + 1);
+    console.log(`Login component render #${renderCount + 1}`, { authLoading, user });
+  });
   
   // Verificar se há mensagem de verificação na URL (após registro)
   const showVerification = new URLSearchParams(location.search).get('verification') === 'true';
@@ -72,7 +67,10 @@ const Login = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#0c2461] mb-2">Plan Forge</h1>
           <p className="text-gray-600">Planejamento Financeiro Profissional</p>
-          {process.env.NODE_ENV === 'development' && <p className="text-xs text-gray-400 mt-1">{debugInfo}</p>}
+          <p className="text-xs text-gray-400 mt-1">
+            Estado: {authLoading ? 'Carregando' : (user ? 'Logado' : 'Não logado')}
+            {' • '}Renderizações: {renderCount}
+          </p>
         </div>
         
         {showVerification && (
@@ -93,6 +91,7 @@ const Login = () => {
           </Alert>
         )}
         
+        {/* Mostrar o conteúdo da página apenas quando não estiver carregando */}
         <Card>
           <CardHeader>
             <CardTitle>Entrar</CardTitle>
@@ -138,9 +137,9 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-[#0c2461]"
-                disabled={isSubmitting || authLoading}
+                disabled={isSubmitting}
               >
-                {isSubmitting || authLoading ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Entrando...
