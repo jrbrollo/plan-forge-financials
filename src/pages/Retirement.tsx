@@ -40,34 +40,34 @@ const Retirement = () => {
     const loadClientData = async () => {
       if (clientId) {
         setLoading(true);
-        const client = await loadClientById(clientId);
+        await loadClientById(clientId);
         
-        if (client) {
-          // Preencher dados iniciais com base no cliente
-          if (client.age) setCurrentAge(client.age);
-          if (client.financialProfile?.retirementAge) setRetirementAge(client.financialProfile.retirementAge);
-          if (client.monthlyNetIncome) setTargetMonthlyIncome(client.monthlyNetIncome * 0.7); // 70% da renda atual
-          
-          // Verificar se o cliente tem investimentos
-          if (client.totalInvestments) {
-            setInitialInvestment(client.totalInvestments);
+        if (currentClient) {
+          if (currentClient.age) setCurrentAge(currentClient.age);
+          if (currentClient.financialProfile?.retirementAge) {
+            setRetirementAge(currentClient.financialProfile.retirementAge);
+          }
+          if (currentClient.monthlyNetIncome) {
+            setTargetMonthlyIncome(currentClient.monthlyNetIncome * 0.7); // 70% da renda atual
           }
           
-          // Estimar aporte mensal baseado na renda atual
-          if (client.monthlyNetIncome) {
-            setMonthlyContribution(client.monthlyNetIncome * 0.15); // 15% da renda atual
+          if (currentClient.totalInvestments) {
+            setInitialInvestment(currentClient.totalInvestments);
+          }
+          
+          if (currentClient.monthlyNetIncome) {
+            setMonthlyContribution(currentClient.monthlyNetIncome * 0.15); // 15% da renda atual
           }
         }
         
         setLoading(false);
       }
       
-      // Calcula o plano de aposentadoria inicialmente
       calculateRetirementPlan();
     };
 
     loadClientData();
-  }, [clientId]);
+  }, [clientId, currentClient]);
 
   // Função para adicionar um evento de liquidez
   const addLiquidityEvent = () => {

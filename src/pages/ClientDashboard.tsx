@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -104,7 +105,8 @@ const ClientDashboard = () => {
         const health = calculateFinancialHealth(client, plan);
         setFinancialHealth(health);
         
-        const projection = createInvestmentProjection(client, plan);
+        // Fix argument count for createInvestmentProjection
+        const projection = createInvestmentProjection(client);
         setInvestmentProjection(projection);
         
         const debtAnalysisResults = analyzeDebts(client, plan);

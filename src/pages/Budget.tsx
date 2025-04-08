@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
 
-// Remove duplicate error declaration
 const Budget = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
@@ -14,7 +13,6 @@ const Budget = () => {
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(null);
   
-  // Fix redeclared error variable
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
@@ -22,12 +20,10 @@ const Budget = () => {
       if (clientId) {
         try {
           setLoading(true);
-          // Fix type error by ensuring a non-void return type
-          const client = await loadClientById(clientId);
+          await loadClientById(clientId);
           
-          if (client) {
-            // The rest of the function
-            console.log("Client loaded:", client);
+          if (currentClient) {
+            console.log("Client loaded:", currentClient);
           } else {
             setError("Cliente não encontrado");
           }
@@ -41,7 +37,7 @@ const Budget = () => {
     };
     
     loadClientData();
-  }, [clientId, loadClientById]);
+  }, [clientId, loadClientById, currentClient]);
   
   if (loading) {
     return (
@@ -82,7 +78,6 @@ const Budget = () => {
     );
   }
 
-  // Exemplo de dados de orçamento (substitua por dados reais do cliente)
   const incomeData = [
     { category: 'Salário', amount: currentClient.monthlyNetIncome || 0, percentage: 100 }
   ];
@@ -101,19 +96,12 @@ const Budget = () => {
   const totalIncome = incomeData.reduce((sum, item) => sum + item.amount, 0);
 
   const handleSaveBudget = () => {
-    // Aqui você implementaria a lógica para salvar o orçamento
     console.log("Salvando orçamento...");
     
-    // Exemplo de como atualizar o cliente com os novos dados de orçamento
     const updatedClient = {
       ...currentClient,
-      // Adicione aqui os campos de orçamento que você quer salvar
     };
     
-    // Chame a função para atualizar o cliente no backend
-    // updateClient(updatedClient);
-    
-    // Feedback para o usuário
     alert("Orçamento salvo com sucesso!");
   };
 

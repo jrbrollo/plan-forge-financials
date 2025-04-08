@@ -19,7 +19,7 @@ interface ClientContextType {
   error: string | null;
   refreshClients: () => Promise<void>;
   getFinancialData: (client: Client) => any;
-  loadClientById: (clientId: string) => Promise<void>; // Add this to make loadClient accessible
+  loadClientById: (clientId: string) => Promise<void>; // Updated return type to Promise<void>
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
