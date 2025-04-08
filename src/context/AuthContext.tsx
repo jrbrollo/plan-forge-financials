@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Session, AuthError } from "@supabase/supabase-js";
@@ -29,25 +30,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Buscar sessão atual quando o componente montar
-    const fetchSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error("Erro ao buscar sessão:", error);
-      }
-
-      if (data?.session) {
-        setSession(data.session);
-        setUser(data.session.user);
-        await fetchPlanner(data.session.user.id);
-      }
-
-      setIsLoading(false);
-    };
-
-    fetchSession();
-
-    // Configurar ouvinte para mudanças de autenticação
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       console.log("Auth state changed:", event);
       
@@ -62,6 +45,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setIsLoading(false);
     });
+
+    // THEN check for existing session
+    const fetchSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error("Erro ao buscar sessão:", error);
+          setIsLoading(false);
+          return;
+        }
+
+        if (data?.session) {
+          setSession(data.session);
+          setUser(data.session.user);
+          await fetchPlanner(data.session.user.id);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar sessão:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSession();
 
     return () => {
       subscription.unsubscribe();
@@ -98,11 +105,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         navigate('/clients');
       }
 
-      setIsLoading(false);
       return { error };
     } catch (e) {
-      setIsLoading(false);
       return { error: e as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,11 +144,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       }
 
-      setIsLoading(false);
       return { error };
     } catch (e) {
-      setIsLoading(false);
       return { error: e as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -160,11 +167,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
-      setIsLoading(false);
       return { error };
     } catch (e) {
-      setIsLoading(false);
       return { error: e as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,11 +209,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         password: newPassword
       });
       
-      setIsLoading(false);
       return { error };
     } catch (e) {
-      setIsLoading(false);
       return { error: e as AuthError };
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -236,4 +243,4 @@ export const useAuth = () => {
     throw new Error("useAuth deve ser usado dentro de um AuthProvider");
   }
   return context;
-}; 
+};

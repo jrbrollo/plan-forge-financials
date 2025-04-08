@@ -36,6 +36,20 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const UnauthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <LoaderFull />;
+  }
+  
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="plan-forge-theme">
@@ -44,9 +58,21 @@ const App = () => {
           <Suspense fallback={<LoaderFull />}>
             <Routes>
               {/* Rotas de autenticação */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/login" element={
+                <UnauthenticatedRoute>
+                  <Login />
+                </UnauthenticatedRoute>
+              } />
+              <Route path="/register" element={
+                <UnauthenticatedRoute>
+                  <Register />
+                </UnauthenticatedRoute>
+              } />
+              <Route path="/reset-password" element={
+                <UnauthenticatedRoute>
+                  <ResetPassword />
+                </UnauthenticatedRoute>
+              } />
               
               {/* Rotas protegidas */}
               <Route path="/" element={
