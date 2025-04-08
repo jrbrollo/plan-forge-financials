@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useClient } from '@/context/ClientContext';
@@ -21,12 +22,6 @@ const Budget = () => {
         try {
           setLoading(true);
           await loadClientById(clientId);
-          
-          if (currentClient) {
-            console.log("Client loaded:", currentClient);
-          } else {
-            setError("Cliente não encontrado");
-          }
         } catch (err) {
           console.error("Erro ao carregar cliente:", err);
           setError("Erro ao carregar os dados do cliente");
@@ -37,7 +32,7 @@ const Budget = () => {
     };
     
     loadClientData();
-  }, [clientId, loadClientById, currentClient]);
+  }, [clientId, loadClientById]);
   
   if (loading) {
     return (

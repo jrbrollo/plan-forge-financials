@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sidebar } from "@/components/Layout/Sidebar";
@@ -40,34 +41,38 @@ const Retirement = () => {
     const loadClientData = async () => {
       if (clientId) {
         setLoading(true);
-        await loadClientById(clientId);
-        
-        if (currentClient) {
-          if (currentClient.age) setCurrentAge(currentClient.age);
-          if (currentClient.financialProfile?.retirementAge) {
-            setRetirementAge(currentClient.financialProfile.retirementAge);
-          }
-          if (currentClient.monthlyNetIncome) {
-            setTargetMonthlyIncome(currentClient.monthlyNetIncome * 0.7); // 70% da renda atual
-          }
+        try {
+          await loadClientById(clientId);
           
-          if (currentClient.totalInvestments) {
-            setInitialInvestment(currentClient.totalInvestments);
+          if (currentClient) {
+            if (currentClient.age) setCurrentAge(currentClient.age);
+            if (currentClient.financialProfile?.retirementAge) {
+              setRetirementAge(currentClient.financialProfile.retirementAge);
+            }
+            if (currentClient.monthlyNetIncome) {
+              setTargetMonthlyIncome(currentClient.monthlyNetIncome * 0.7); // 70% da renda atual
+            }
+            
+            if (currentClient.totalInvestments) {
+              setInitialInvestment(currentClient.totalInvestments);
+            }
+            
+            if (currentClient.monthlyNetIncome) {
+              setMonthlyContribution(currentClient.monthlyNetIncome * 0.15); // 15% da renda atual
+            }
           }
-          
-          if (currentClient.monthlyNetIncome) {
-            setMonthlyContribution(currentClient.monthlyNetIncome * 0.15); // 15% da renda atual
-          }
+        } catch (err) {
+          console.error("Erro ao carregar cliente:", err);
+        } finally {
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
       
       calculateRetirementPlan();
     };
 
     loadClientData();
-  }, [clientId, currentClient]);
+  }, [clientId, currentClient, loadClientById]);
 
   // Função para adicionar um evento de liquidez
   const addLiquidityEvent = () => {
@@ -253,6 +258,19 @@ const Retirement = () => {
     return `${value.toFixed(1)}%`;
   };
   
+  if (loading || isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <Sidebar />
+        <div className="flex-1 p-6">
+          <div className="flex justify-center items-center h-64">
+            <p>Carregando dados de aposentadoria...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
@@ -371,7 +389,7 @@ const Retirement = () => {
                           <TrendingUp className="h-4 w-4 text-green-600" />
                           <AlertTitle className="text-green-800">Objetivo Alcançável</AlertTitle>
                           <AlertDescription className="text-green-700">
-                            Com seu plano atual, você alcançará sua renda passiva desejada 
+                            Com o plano atual, o cliente alcançará a renda passiva desejada 
                             {retirementPlan?.financialIndependenceAge < retirementPlan?.retirementAge ? 
                               ` ${retirementPlan?.retirementAge - retirementPlan?.financialIndependenceAge} anos antes da aposentadoria planejada.` : 
                               ` aos ${retirementPlan?.financialIndependenceAge} anos.`
@@ -402,8 +420,8 @@ const Retirement = () => {
                           <AlertCircle className="h-4 w-4 text-amber-600" />
                           <AlertTitle className="text-amber-800">Ajustes Necessários</AlertTitle>
                           <AlertDescription className="text-amber-700">
-                            Com o plano atual, você não atingirá sua renda passiva desejada até a aposentadoria. 
-                            Considere aumentar seu aporte mensal ou o aporte inicial.
+                            Com o plano atual, seu cliente não atingirá a renda passiva desejada até a aposentadoria. 
+                            Considere recomendar um aumento no aporte mensal ou no aporte inicial.
                           </AlertDescription>
                         </Alert>
                       </>
@@ -770,7 +788,7 @@ const Retirement = () => {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <p className="text-gray-700">
-                    Essas informações auxiliam o planejador a orientar o cliente sobre seu plano de aposentadoria.
+                    Estas informações auxiliam você a orientar o cliente sobre seu plano de aposentadoria.
                   </p>
                   
                   <div className="grid grid-cols-2 gap-4">
@@ -806,34 +824,34 @@ const Retirement = () => {
                     <ul className="list-disc pl-5 text-gray-700 space-y-2">
                       {retirementPlan && retirementPlan.financialIndependenceAge > retirementPlan.retirementAge && (
                         <li className="text-amber-800">
-                          Aumente o aporte mensal para pelo menos {formatCurrency(
+                          Recomende um aumento no aporte mensal para pelo menos {formatCurrency(
                             ((targetMonthlyIncome * 12) / 0.04 - initialInvestment) / 
                             ((Math.pow(1 + expectedReturnRate/100, retirementAge - currentAge) - 1) / 
                             (expectedReturnRate/100)) / 12
-                          )} para alcançar a independência financeira na idade desejada.
+                          )} para que o cliente alcance a independência financeira na idade desejada.
                         </li>
                       )}
                       
                       {retirementPlan && expectedReturnRate < 8 && (
                         <li>
-                          Considere diversificar seus investimentos para buscar um retorno real maior que {formatPercentage(expectedReturnRate)}.
+                          Avalie a possibilidade de diversificar os investimentos do cliente para buscar um retorno real maior que {formatPercentage(expectedReturnRate)}.
                         </li>
                       )}
                       
                       {retirementPlan && monthlyContribution < (targetMonthlyIncome * 0.3) && (
                         <li>
-                          Se possível, aumente suas contribuições mensais para pelo menos {formatCurrency(targetMonthlyIncome * 0.3)} para acelerar seu progresso.
+                          Sugira um aumento nas contribuições mensais para pelo menos {formatCurrency(targetMonthlyIncome * 0.3)} para acelerar o progresso do cliente.
                         </li>
                       )}
                       
                       {retirementPlan && (retirementAge - currentAge) < 20 && (
                         <li>
-                          Com um horizonte de {retirementAge - currentAge} anos até a aposentadoria, considere aumentar significativamente seus aportes ou reavaliar sua renda desejada.
+                          Com um horizonte de {retirementAge - currentAge} anos até a aposentadoria, recomende ao cliente aumentar significativamente seus aportes ou reavaliar sua renda desejada.
                         </li>
                       )}
                       
                       <li>
-                        Faça uma revisão anual do seu plano para ajustar seus aportes conforme sua situação financeira evolui.
+                        Programe uma revisão anual do plano para ajustar os aportes conforme a situação financeira do cliente evolui.
                       </li>
                     </ul>
                   </div>
