@@ -12,14 +12,14 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { ArrowLeft, Calculator, RefreshCw, AlertCircle, TrendingUp, Calendar, DollarSign, Plus, Trash } from 'lucide-react';
 import { useClient } from '@/context/ClientContext';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RetirementPlan, LiquidityEvent } from '@/lib/types';
+import { RetirementPlan, LiquidityEvent, Client } from '@/lib/types';
 
 const Retirement = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const { currentClient, isLoading, error, loadClientById } = useClient();
   const [loading, setLoading] = useState<boolean>(true);
-
+  
   // Estados para os campos de input
   const [initialInvestment, setInitialInvestment] = useState<number>(50000);
   const [monthlyContribution, setMonthlyContribution] = useState<number>(3000);

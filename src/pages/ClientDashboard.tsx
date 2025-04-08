@@ -20,12 +20,11 @@ import { getClientById } from '@/services/clientService';
 import { 
   createFinancialPlanFromClient, 
   calculateFinancialHealth, 
-  calculateInvestmentProjection,
+  createInvestmentProjection,
   analyzeDebts
 } from '@/services/financialService';
 import type { FinancialPlan, FinancialHealth, InvestmentProjection, DebtAnalysis } from '@/lib/types';
 
-// Componente de resumo financeiro em forma de cartão
 const FinancialMetricCard = ({ 
   title, 
   value, 
@@ -70,7 +69,6 @@ const FinancialMetricCard = ({
   );
 };
 
-// Componente principal de Dashboard do Cliente
 const ClientDashboard = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
@@ -97,23 +95,18 @@ const ClientDashboard = () => {
       setCurrentClient(client);
       
       try {
-        // Criar plano financeiro com base nos dados do cliente
         const plan = createFinancialPlanFromClient(client);
         setFinancialPlan(plan);
         
-        // Garantir que estamos mostrando a renda correta
         console.log("Renda do cliente:", client.monthlyNetIncome || client.income || "Não definida");
         console.log("Plano financeiro com renda:", plan.currentCashFlow.income);
         
-        // Calcular saúde financeira
         const health = calculateFinancialHealth(client, plan);
         setFinancialHealth(health);
         
-        // Projetar investimentos
-        const projection = calculateInvestmentProjection(client, plan);
+        const projection = createInvestmentProjection(client, plan);
         setInvestmentProjection(projection);
         
-        // Analisar dívidas
         const debtAnalysisResults = analyzeDebts(client, plan);
         setDebtAnalysis(debtAnalysisResults);
       } catch (error) {
@@ -191,7 +184,7 @@ const ClientDashboard = () => {
           <FinancialMetricCard 
             title="Patrimônio Total" 
             value={financialHealth?.netWorth || 0} 
-            description="Ativos totais menos dívidas" 
+            description="Ativos totais menos d��vidas" 
             icon={<AreaChart className="h-5 w-5 text-green-500" />}
             isCurrency={true}
           />
@@ -215,12 +208,12 @@ const ClientDashboard = () => {
           </Alert>
         )}
         
-        {debtAnalysis?.hasHighInterestDebt && (
+        {debtAnalysis?.highInterestDebts && debtAnalysis.highInterestDebts.length > 0 && (
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Dívidas com Juros Altos</AlertTitle>
             <AlertDescription>
-              {debtAnalysis.highInterestDebtCount} dívidas com taxas acima de 15% ao ano. 
+              {debtAnalysis.highInterestDebts.length} dívidas com taxas acima de 15% ao ano. 
               Considere renegociar ou quitar com prioridade.
             </AlertDescription>
           </Alert>
@@ -323,7 +316,6 @@ const ClientDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-              {/* Aqui entraria um componente de gráfico para visualizar os ativos */}
               <div className="flex flex-col h-full justify-center items-center">
                 {financialPlan.assets.length === 0 ? (
                   <p className="text-gray-500">Nenhum ativo registrado</p>
@@ -364,7 +356,6 @@ const ClientDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-80">
-              {/* Aqui entraria um componente de gráfico para projeção patrimonial */}
               <div className="flex flex-col h-full justify-center items-center">
                 {investmentProjection ? (
                   <div className="w-full">
@@ -401,4 +392,4 @@ const ClientDashboard = () => {
   );
 };
 
-export default ClientDashboard; 
+export default ClientDashboard;

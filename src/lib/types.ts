@@ -1,3 +1,4 @@
+
 export interface Client {
   id: string;
   name: string;
@@ -117,6 +118,8 @@ export interface Client {
     estimatedAmountNeeded: number;
     targetDate: string;
     comments: string;
+    retirementAge?: number;
+    targetIncome?: number;
   };
   
   otherGoals?: {

@@ -31,7 +31,6 @@ const AddClient = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Estado para o novo cliente
   const [newClient, setNewClient] = useState<Partial<Client>>({
     id: uuidv4(),
     name: '',
@@ -51,6 +50,8 @@ const AddClient = () => {
       inssKnowledge: '',
       desiredPassiveIncome: 0,
       estimatedAmountNeeded: 0,
+      retirementAge: 65,
+      targetIncome: 0,
       targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + 20)).toISOString().split('T')[0],
       comments: ''
     },
