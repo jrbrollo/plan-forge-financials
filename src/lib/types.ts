@@ -128,6 +128,14 @@ export interface Client {
   
   planner_id: string;
   isActive: boolean;
+
+  // Add emergencyFund property
+  emergencyFund?: {
+    targetAmount: number;
+    currentAmount: number;
+    monthlyContribution: number;
+    targetMonths: number;
+  };
 }
 
 export interface Income {
@@ -236,18 +244,21 @@ export interface InvestmentProjection {
 export interface DebtAnalysis {
   highInterestDebts: Debt[];
   totalHighInterestDebt: number;
+  totalDebt: number;
   debtToIncomeRatio: number;
   monthsToPayoff: number;
   interestPaid: number;
   debtFreeDate: string;
+  hasHighInterestDebt: boolean;
+  highInterestDebtCount: number;
 }
 
 export interface LiquidityEvent {
   description: string;
   amount: number;
-  date: string; // formato AAAA-MM-DD
-  year: number;  // ano calculado a partir da data (para facilitar cálculos)
-  age: number;   // idade do cliente neste evento
+  date: string;
+  year: number;
+  age: number;
 }
 
 export interface RetirementPlan {

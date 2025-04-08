@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from "@/context/AuthContext";
 
 interface ClientMultiStepFormProps {
   onSave: (client: Omit<Client, 'id'>) => void;
@@ -19,6 +19,8 @@ interface ClientMultiStepFormProps {
 }
 
 export function ClientMultiStepForm({ onSave, onCancel, initialValues = {} }: ClientMultiStepFormProps) {
+  const { planner } = useAuth();
+
   // Dados básicos do cliente
   const [name, setName] = useState(initialValues.name || '');
   const [age, setAge] = useState(initialValues.age || 0);
@@ -240,7 +242,9 @@ export function ClientMultiStepForm({ onSave, onCancel, initialValues = {} }: Cl
       
       // Required fields
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      planner_id: planner?.id || '',
+      isActive: true
     };
     
     onSave(clientData);

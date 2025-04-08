@@ -39,38 +39,23 @@ const AddClient = () => {
     phone: '',
     age: 30,
     profession: '',
-    maritalStatus: 'single',
-    dependents: 0,
-    riskProfile: 'moderate',
+    maritalStatus: 'Solteiro(a)',
+    numberOfChildren: 0,
+    moneyProfile: 'Meio-termo',
     isActive: true,
     planner_id: planner?.id || '',
-    monthlyIncome: 0,
-    investments: [],
-    budget: {
-      income: [],
-      expenses: []
-    },
-    goals: [],
+    monthlyNetIncome: 0,
+    totalInvestments: 0,
     retirement: {
-      currentAge: 30,
-      retirementAge: 65,
-      currentSavings: 0,
-      monthlySavings: 0,
-      targetIncome: 0,
-      expectedReturn: 7,
-      expectedInflation: 4,
-      liquidityEvents: []
+      plan: '',
+      inssKnowledge: '',
+      desiredPassiveIncome: 0,
+      estimatedAmountNeeded: 0,
+      targetDate: new Date(new Date().setFullYear(new Date().getFullYear() + 20)).toISOString().split('T')[0],
+      comments: ''
     },
-    cashFlow: {
-      income: [],
-      expenses: []
-    },
-    emergencyFund: {
-      targetAmount: 0,
-      currentAmount: 0,
-      monthlyContribution: 0,
-      targetMonths: 6
-    }
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -78,7 +63,7 @@ const AddClient = () => {
     
     setNewClient(prev => ({
       ...prev,
-      [name]: name === 'age' || name === 'dependents' || name === 'monthlyIncome' 
+      [name]: name === 'age' || name === 'numberOfChildren' || name === 'monthlyNetIncome' 
         ? Number(value) 
         : value
     }));
@@ -113,7 +98,7 @@ const AddClient = () => {
         planner_id: planner.id
       } as Client;
       
-      const savedClient = await saveClient(clientToSave);
+      const savedClient = await saveClient(clientToSave, planner.id);
       
       setSuccess('Cliente adicionado com sucesso!');
       setCurrentClient(savedClient);
@@ -238,12 +223,12 @@ const AddClient = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="dependents">Dependentes</Label>
+                      <Label htmlFor="numberOfChildren">Número de Filhos</Label>
                       <Input
-                        id="dependents"
-                        name="dependents"
+                        id="numberOfChildren"
+                        name="numberOfChildren"
                         type="number"
-                        value={newClient.dependents}
+                        value={newClient.numberOfChildren}
                         onChange={handleInputChange}
                         min={0}
                         max={20}
@@ -299,12 +284,12 @@ const AddClient = () => {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="monthlyIncome">Renda Mensal (R$)</Label>
+                      <Label htmlFor="monthlyNetIncome">Renda Mensal (R$)</Label>
                       <Input
-                        id="monthlyIncome"
-                        name="monthlyIncome"
+                        id="monthlyNetIncome"
+                        name="monthlyNetIncome"
                         type="number"
-                        value={newClient.monthlyIncome}
+                        value={newClient.monthlyNetIncome}
                         onChange={handleInputChange}
                         placeholder="0.00"
                         min={0}
@@ -312,10 +297,10 @@ const AddClient = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="riskProfile">Perfil de Risco</Label>
+                      <Label htmlFor="moneyProfile">Perfil de Risco</Label>
                       <Select 
-                        defaultValue={newClient.riskProfile || 'moderate'} 
-                        onValueChange={(value) => handleSelectChange('riskProfile', value)}
+                        defaultValue={newClient.moneyProfile || 'moderate'} 
+                        onValueChange={(value) => handleSelectChange('moneyProfile', value)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o perfil de risco" />
@@ -471,4 +456,4 @@ const AddClient = () => {
   );
 };
 
-export default AddClient; 
+export default AddClient;

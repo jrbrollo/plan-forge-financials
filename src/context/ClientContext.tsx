@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Client } from '@/lib/types';
@@ -18,6 +19,7 @@ interface ClientContextType {
   error: string | null;
   refreshClients: () => Promise<void>;
   getFinancialData: (client: Client) => any;
+  loadClientById: (clientId: string) => Promise<void>; // Add this to make loadClient accessible
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -311,7 +313,8 @@ export const ClientProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isLoading,
         error,
         refreshClients,
-        getFinancialData
+        getFinancialData,
+        loadClientById // Add this to expose the function
       }}
     >
       {children}

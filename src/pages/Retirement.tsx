@@ -17,7 +17,7 @@ import { RetirementPlan, LiquidityEvent } from '@/lib/types';
 const Retirement = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
-  const { currentClient, loadClient, updateClient } = useClient();
+  const { currentClient, isLoading, error, loadClientById } = useClient();
   const [loading, setLoading] = useState<boolean>(true);
 
   // Estados para os campos de input
@@ -40,7 +40,7 @@ const Retirement = () => {
     const loadClientData = async () => {
       if (clientId) {
         setLoading(true);
-        const client = loadClient(clientId);
+        const client = await loadClientById(clientId);
         
         if (client) {
           // Preencher dados iniciais com base no cliente

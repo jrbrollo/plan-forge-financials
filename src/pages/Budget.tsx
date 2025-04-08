@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function Budget() {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
-  const { currentClient, loadClient, updateClient } = useClient();
+  const { currentClient, isLoading, error, loadClientById } = useClient();
   const [financialPlan, setFinancialPlan] = useState<FinancialPlan | null>(null);
   const [currentCashFlow, setCurrentCashFlow] = useState<CashFlow | null>(null);
   const [suggestedCashFlow, setSuggestedCashFlow] = useState<CashFlow | null>(null);
@@ -45,7 +45,7 @@ export default function Budget() {
         
         if (clientId) {
           console.log("Carregando cliente por ID:", clientId);
-          client = loadClient(clientId);
+          client = loadClientById(clientId);
         } else if (currentClient) {
           console.log("Usando cliente do contexto:", currentClient.id);
           client = currentClient;

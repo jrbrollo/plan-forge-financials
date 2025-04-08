@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Client } from "@/lib/types";
+import { useAuth } from "@/context/AuthContext";
 
 interface ClientFormProps {
   onSave: (client: Omit<Client, 'id'>) => void;
@@ -13,6 +14,7 @@ interface ClientFormProps {
 }
 
 export function ClientForm({ onSave, onCancel, initialValues = {}, isSimpleForm = false }: ClientFormProps) {
+  const { planner } = useAuth();
   const [name, setName] = useState(initialValues.name || '');
   const [age, setAge] = useState(initialValues.age || 0);
   const [email, setEmail] = useState(initialValues.email || '');
@@ -27,7 +29,9 @@ export function ClientForm({ onSave, onCancel, initialValues = {}, isSimpleForm 
       email,
       phone,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      planner_id: planner?.id || '',
+      isActive: true
     });
   };
 
