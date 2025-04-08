@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
@@ -21,6 +22,11 @@ import {
   SheetContent,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger
+} from '@/components/ui/dialog';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -195,11 +201,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         {/* Header para mobile */}
         <header className="border-b px-4 py-3 flex items-center justify-between md:hidden">
           <div className="flex items-center gap-3">
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu size={20} />
-              </Button>
-            </SheetTrigger>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu size={20} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                {/* Conteúdo do diálogo se necessário */}
+                <p>Menu mobile</p>
+              </DialogContent>
+            </Dialog>
             <h1 className="font-semibold text-lg text-primary">Plan Forge</h1>
           </div>
 

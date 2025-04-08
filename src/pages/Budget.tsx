@@ -6,15 +6,20 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Budget = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
-  const { currentClient, isLoading, error: clientError, loadClientById } = useClient();
+  const { currentClient, isLoading: clientLoading, error: clientError, loadClientById } = useClient();
   const [loading, setLoading] = useState(true);
   const [budget, setBudget] = useState(null);
-  
-  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const loadClientData = async () => {
@@ -24,7 +29,6 @@ const Budget = () => {
           await loadClientById(clientId);
         } catch (err) {
           console.error("Erro ao carregar cliente:", err);
-          setError("Erro ao carregar os dados do cliente");
         } finally {
           setLoading(false);
         }
@@ -34,7 +38,7 @@ const Budget = () => {
     loadClientData();
   }, [clientId, loadClientById]);
   
-  if (loading) {
+  if (loading || clientLoading) {
     return (
       <div className="flex min-h-screen bg-gray-100">
         <Sidebar />
@@ -190,9 +194,21 @@ const Budget = () => {
             <CardTitle>Distribuição do Orçamento</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center">
-              <p className="text-gray-500">Gráfico de distribuição do orçamento será exibido aqui</p>
-            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="h-64 flex items-center justify-center cursor-pointer hover:bg-gray-50 rounded-md transition-colors">
+                  <p className="text-gray-500">Clique para visualizar o gráfico de distribuição do orçamento</p>
+                </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Distribuição do Orçamento</DialogTitle>
+                </DialogHeader>
+                <div className="h-64 flex items-center justify-center">
+                  <p className="text-gray-500">Gráfico de distribuição do orçamento será exibido aqui</p>
+                </div>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
         
