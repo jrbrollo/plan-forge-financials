@@ -20,13 +20,14 @@ const Reports = lazy(() => import('@/pages/Reports'));
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 
 // Componente para verificar autenticação
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return <LoaderFull />;
+    return <LoaderFull message="Verificando autenticação..." debug={`isLoading: ${isLoading}, user: ${user ? 'sim' : 'não'}`} />;
   }
   
   if (!user) {
@@ -36,15 +37,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Simplificando o UnauthenticatedRoute para evitar problemas
 const UnauthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return <LoaderFull message="Carregando autenticação..." />;
+    return <LoaderFull message="Verificando sessão..." debug={`isLoading: ${isLoading}, user: ${user ? 'sim' : 'não'}`} />;
   }
   
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/clients" replace />;
   }
   
   return <>{children}</>;
@@ -57,7 +59,7 @@ const App = () => {
         <AuthProvider>
           <Suspense fallback={<LoaderFull message="Carregando aplicação..." />}>
             <Routes>
-              {/* Rotas de autenticação */}
+              {/* Rotas públicas de autenticação */}
               <Route path="/login" element={
                 <UnauthenticatedRoute>
                   <Login />
@@ -71,6 +73,11 @@ const App = () => {
               <Route path="/reset-password" element={
                 <UnauthenticatedRoute>
                   <ResetPassword />
+                </UnauthenticatedRoute>
+              } />
+              <Route path="/forgot-password" element={
+                <UnauthenticatedRoute>
+                  <ForgotPassword />
                 </UnauthenticatedRoute>
               } />
               
@@ -155,8 +162,8 @@ const App = () => {
                 </ProtectedRoute>
               } />
               
-              {/* Rota de fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Rota de fallback para redirecionar para login */}
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </Suspense>
           <Toaster />

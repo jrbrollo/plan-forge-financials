@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,23 @@ import { useAuth } from '@/context/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isLoading: authLoading } = useAuth();
+  const { signIn, isLoading: authLoading, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+  
+  useEffect(() => {
+    // Adicionar informações de debug
+    setDebugInfo(`authLoading: ${authLoading}, user: ${user ? 'logado' : 'não logado'}`);
+    console.log("Login component mounted", { authLoading, user });
+    
+    // Se já estiver logado, redirecionar para /clients
+    if (user) {
+      navigate('/clients');
+    }
+  }, [authLoading, user, navigate]);
   
   // Verificar se há mensagem de verificação na URL (após registro)
   const showVerification = new URLSearchParams(location.search).get('verification') === 'true';
@@ -33,31 +45,26 @@ const Login = () => {
     setError(null);
     
     try {
+      console.log("Tentando fazer login com:", email);
       const { error: signInError } = await signIn(email, password);
       
       if (signInError) {
+        console.error("Erro no login:", signInError);
         if (signInError.message.includes('Invalid login credentials')) {
           setError('E-mail ou senha incorretos');
         } else {
           setError(signInError.message);
         }
+      } else {
+        console.log("Login bem-sucedido");
       }
     } catch (err) {
+      console.error("Exceção durante login:", err);
       setError('Ocorreu um erro ao tentar fazer login');
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  // Mostrar loader apenas durante a submissão do form, não durante o carregamento do auth
-  if (isSubmitting) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -65,6 +72,7 @@ const Login = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#0c2461] mb-2">Plan Forge</h1>
           <p className="text-gray-600">Planejamento Financeiro Profissional</p>
+          {process.env.NODE_ENV === 'development' && <p className="text-xs text-gray-400 mt-1">{debugInfo}</p>}
         </div>
         
         {showVerification && (
@@ -110,7 +118,7 @@ const Login = () => {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
                   <Link 
-                    to="/reset-password" 
+                    to="/forgot-password" 
                     className="text-sm text-blue-600 hover:text-blue-800"
                   >
                     Esqueceu a senha?
@@ -130,9 +138,9 @@ const Login = () => {
               <Button
                 type="submit"
                 className="w-full bg-[#0c2461]"
-                disabled={isSubmitting}
+                disabled={isSubmitting || authLoading}
               >
-                {isSubmitting ? (
+                {isSubmitting || authLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Entrando...
