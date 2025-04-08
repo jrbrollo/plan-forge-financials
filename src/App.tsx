@@ -1,3 +1,4 @@
+
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from "@/components/theme-provider";
@@ -38,8 +39,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="plan-forge-theme">
-      <AuthProvider>
-        <Router>
+      <Router>
+        <AuthProvider>
           <Suspense fallback={<LoaderFull />}>
             <Routes>
               {/* Rotas de autenticação */}
@@ -133,8 +134,8 @@ const App = () => {
             </Routes>
           </Suspense>
           <Toaster />
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 };
