@@ -1,3 +1,4 @@
+
 import { supabase } from "@/lib/supabase";
 import { Client } from "@/lib/types";
 import { Database } from "@/lib/database.types";
@@ -14,6 +15,8 @@ const convertToClient = (record: ClientRecord): Client => {
     age: record.age,
     email: record.email,
     phone: record.phone,
+    planner_id: record.planner_id,
+    isActive: true,
     createdAt: record.created_at,
     updatedAt: record.updated_at,
     ...data
@@ -22,7 +25,7 @@ const convertToClient = (record: ClientRecord): Client => {
 
 // Converter nosso modelo Client para o formato do Supabase
 const convertToRecord = (client: Client, plannerId: string): Omit<ClientRecord, 'id' | 'created_at'> & { data: any } => {
-  const { id, name, age, email, phone, createdAt, updatedAt, ...data } = client;
+  const { id, name, age, email, phone, planner_id, isActive, createdAt, updatedAt, ...data } = client;
   
   return {
     name,
@@ -107,6 +110,8 @@ export const saveClient = async (client: Client, plannerId: string): Promise<Cli
     return {
       ...client,
       id: newId,
+      planner_id: plannerId,
+      isActive: true,
       createdAt: record.updated_at,
       updatedAt: record.updated_at
     };
@@ -134,6 +139,8 @@ export const addTestClient = async (plannerId: string): Promise<Client> => {
     email: "joao@example.com",
     phone: "(11) 98765-4321",
     age: 35,
+    planner_id: plannerId,
+    isActive: true,
     profession: "Engenheiro de Software",
     company: "Tech Solutions Ltda",
     birthDate: "1988-05-15",
@@ -244,4 +251,4 @@ export const addTestClient = async (plannerId: string): Promise<Client> => {
   };
 
   return await saveClient(testClient, plannerId);
-}; 
+};
