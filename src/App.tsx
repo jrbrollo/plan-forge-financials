@@ -40,7 +40,7 @@ const UnauthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
-    return <LoaderFull />;
+    return <LoaderFull message="Carregando autenticação..." />;
   }
   
   if (user) {
@@ -55,7 +55,7 @@ const App = () => {
     <ThemeProvider defaultTheme="light" storageKey="plan-forge-theme">
       <Router>
         <AuthProvider>
-          <Suspense fallback={<LoaderFull />}>
+          <Suspense fallback={<LoaderFull message="Carregando aplicação..." />}>
             <Routes>
               {/* Rotas de autenticação */}
               <Route path="/login" element={

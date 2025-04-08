@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, user, isLoading } = useAuth();
+  const { signIn, isLoading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -19,13 +20,6 @@ const Login = () => {
   
   // Verificar se há mensagem de verificação na URL (após registro)
   const showVerification = new URLSearchParams(location.search).get('verification') === 'true';
-
-  // Se já estiver autenticado, redirecione para a página inicial
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +50,8 @@ const Login = () => {
     }
   };
 
-  if (isLoading) {
+  // Mostrar loader apenas durante a submissão do form, não durante o carregamento do auth
+  if (isSubmitting) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -115,7 +110,7 @@ const Login = () => {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Senha</Label>
                   <Link 
-                    to="/forgot-password" 
+                    to="/reset-password" 
                     className="text-sm text-blue-600 hover:text-blue-800"
                   >
                     Esqueceu a senha?
@@ -163,4 +158,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

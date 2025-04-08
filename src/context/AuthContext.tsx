@@ -30,45 +30,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log("Auth state changed:", event);
-      
-      setSession(newSession);
-      setUser(newSession?.user || null);
+    console.log("AuthProvider initialized");
+    
+    // Configurar o listener de mudança de estado de autenticação PRIMEIRO
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log("Auth state changed:", event);
+        
+        setSession(newSession);
+        setUser(newSession?.user || null);
 
-      if (newSession?.user) {
-        await fetchPlanner(newSession.user.id);
-      } else {
-        setPlanner(null);
+        if (newSession?.user) {
+          await fetchPlanner(newSession.user.id);
+        } else {
+          setPlanner(null);
+        }
       }
+    );
 
-      setIsLoading(false);
-    });
-
-    // THEN check for existing session
-    const fetchSession = async () => {
+    // DEPOIS verificar se já existe uma sessão
+    const initializeAuth = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
+        
         if (error) {
           console.error("Erro ao buscar sessão:", error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (data?.session) {
-          setSession(data.session);
-          setUser(data.session.user);
-          await fetchPlanner(data.session.user.id);
+        } else {
+          console.log("Session data:", data);
+          
+          if (data?.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+            await fetchPlanner(data.session.user.id);
+          }
         }
       } catch (error) {
-        console.error("Erro ao buscar sessão:", error);
+        console.error("Erro durante inicialização de auth:", error);
       } finally {
         setIsLoading(false);
+        console.log("Auth initialization complete, isLoading set to false");
       }
     };
 
-    fetchSession();
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
@@ -99,14 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      console.log("Tentando fazer login com:", email);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (!error) {
+        console.log("Login bem-sucedido, redirecionando para /clients");
         navigate('/clients');
+      } else {
+        console.error("Erro no login:", error);
       }
 
       return { error };
     } catch (e) {
+      console.error("Exceção no login:", e);
       return { error: e as AuthError };
     } finally {
       setIsLoading(false);
@@ -217,21 +226,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const contextValue = {
+    user,
+    session,
+    planner,
+    isLoading,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
+    updateProfile,
+    updatePassword
+  };
+
+  console.log("AuthContext render - isLoading:", isLoading);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        planner,
-        isLoading,
-        signIn,
-        signUp,
-        signOut,
-        resetPassword,
-        updateProfile,
-        updatePassword
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
